@@ -91,9 +91,11 @@ async function saveReport(results) {
   const merged = new Map(previous.map((entry) => [entry.id, entry]));
   for (const result of results) merged.set(result.id, result);
 
+  // как и остальные файлы в content/: два пробела, иначе каждая
+  // проверка переписывает отчёт целиком
   fs.writeFileSync(
     reportFile,
-    JSON.stringify([...merged.values()], null, 1) + "\n",
+    JSON.stringify([...merged.values()], null, 2) + "\n",
     "utf8",
   );
 }
