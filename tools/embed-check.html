@@ -2,9 +2,19 @@
 <meta charset="utf-8" />
 <title>embed check</title>
 <style>
-  body { margin: 0; background: #000; }
-  .cell { display: inline-block; }
-  iframe { width: 320px; height: 180px; border: 0; display: block; }
+  body {
+    margin: 0;
+    background: #000;
+  }
+  .cell {
+    display: inline-block;
+  }
+  iframe {
+    width: 320px;
+    height: 180px;
+    border: 0;
+    display: block;
+  }
 </style>
 <div id="stage"></div>
 <script src="https://www.youtube.com/iframe_api"></script>
@@ -12,7 +22,9 @@
   window.RESULTS = {};
   window.API_READY = false;
 
-  const HOST = new URLSearchParams(location.search).get('host') || 'https://www.youtube-nocookie.com';
+  const HOST =
+    new URLSearchParams(location.search).get("host") ||
+    "https://www.youtube-nocookie.com";
   window.HOST_USED = HOST;
 
   function onYouTubeIframeAPIReady() {
@@ -25,25 +37,25 @@
    */
   window.checkBatch = function (ids) {
     return new Promise((resolve) => {
-      const stage = document.getElementById('stage');
+      const stage = document.getElementById("stage");
       const results = {};
       let left = ids.length;
       if (!left) return resolve(results);
 
       const done = () => {
         if (--left === 0) {
-          stage.textContent = '';
+          stage.textContent = "";
           window.RESULTS = Object.assign(window.RESULTS, results);
           resolve(results);
         }
       };
 
       for (const id of ids) {
-        const holder = document.createElement('div');
-        holder.className = 'cell';
+        const holder = document.createElement("div");
+        holder.className = "cell";
         stage.appendChild(holder);
 
-        const rec = { id, status: 'pending', error: null };
+        const rec = { id, status: "pending", error: null };
         results[id] = rec;
         let settled = false;
         let timer = null;
@@ -55,13 +67,15 @@
           Object.assign(rec, patch);
           const p = player;
           setTimeout(() => {
-            try { p && p.destroy(); } catch {}
+            try {
+              p && p.destroy();
+            } catch {}
             holder.remove();
           }, 0);
           done();
         };
 
-        timer = setTimeout(() => settle({ status: 'silent' }), 20000);
+        timer = setTimeout(() => settle({ status: "silent" }), 20000);
 
         const player = new YT.Player(holder, {
           videoId: id,
@@ -76,13 +90,19 @@
           events: {
             onReady: (e) => {
               rec.ready = true;
-              setTimeout(() => { try { e.target.mute(); e.target.playVideo(); } catch {} }, 200);
+              setTimeout(() => {
+                try {
+                  e.target.mute();
+                  e.target.playVideo();
+                } catch {}
+              }, 200);
             },
             onStateChange: (e) => {
-              if (e.data === YT.PlayerState.PLAYING) settle({ status: 'ok' });
-              else if (e.data === YT.PlayerState.CUED) settle({ status: 'cued' });
+              if (e.data === YT.PlayerState.PLAYING) settle({ status: "ok" });
+              else if (e.data === YT.PlayerState.CUED)
+                settle({ status: "cued" });
             },
-            onError: (e) => settle({ status: 'error', error: e.data }),
+            onError: (e) => settle({ status: "error", error: e.data }),
           },
         });
       }
