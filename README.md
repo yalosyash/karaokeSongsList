@@ -55,3 +55,16 @@ npm run build
     "chorus": ["Let the sky fall"]
   }
 ```
+
+## Служебные команды
+
+```bash
+npm start                                         # локально: http://localhost:4173
+npm test                                          # проверка интерфейса
+npm run fetch-lyrics                              # дозагрузить тексты из LRCLIB
+npm run check-embeds                              # проверить, встраиваются ли видео
+node scripts/check-embeds.js --only <id1>,<id2>   # то же выборочно, без всех 176
+```
+
+`fetch-lyrics` трогает только песни без куплета. `check-embeds` работает при запущенном `npm start` и помечает видео, где автор запретил встраивание: такие открываются на YouTube, после проверки нужен `npm run build`.
+
