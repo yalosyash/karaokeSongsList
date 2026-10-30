@@ -13,6 +13,7 @@
     "screenshots": "node tests/screenshots.js"
   },
   "devDependencies": {
+    "prettier": "^3.9.10",
     "puppeteer-core": "^25.16.0"
   }
 }

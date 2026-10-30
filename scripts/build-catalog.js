@@ -10,6 +10,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import prettier from "prettier";
+
 import { norm, searchNorm } from "../src/core/text.js";
 import { normalizeLyrics } from "./lib/lyrics.js";
 
@@ -78,8 +80,12 @@ const body = `export const SONGS = [\n${catalog
   .map((song) => "  " + JSON.stringify(song))
   .join(",\n")}\n];\n`;
 
+/* Каталог лежит в Git, поэтому форматируем его так же, как остальной код:
+   иначе пересборка даёт диф на весь файл. */
+const source = await prettier.format(header + body, { parser: "babel" });
+
 fs.mkdirSync(path.dirname(target), { recursive: true });
-fs.writeFileSync(target, header + body, "utf8");
+fs.writeFileSync(target, source, "utf8");
 
 const kb = Math.round(Buffer.byteLength(header + body) / 1024);
 const missingChannel = catalog.filter((song) => !song.channel).length;
