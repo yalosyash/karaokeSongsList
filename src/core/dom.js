@@ -25,6 +25,7 @@ export const el = {
   videoBlocked: $("videoBlocked"),
   blockedSub: $("blockedSub"),
   openYtBtn: $("openYtBtn"),
+  blockedAltBtn: $("blockedAltBtn"),
   bigPlay: $("bigPlay"),
   emptyTitle: $("emptyTitle"),
   emptySub: $("emptySub"),

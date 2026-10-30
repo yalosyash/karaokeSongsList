@@ -92,6 +92,7 @@ export function wireNowBar() {
   el.btnYt.addEventListener("click", openCurrentOnYouTube);
   el.openYtBtn.addEventListener("click", openCurrentOnYouTube);
   el.btnAlt.addEventListener("click", nextVersion);
+  el.blockedAltBtn.addEventListener("click", nextVersion);
   el.btnFav.addEventListener("click", () => toggleFavorite(state.currentId));
   el.btnStop.addEventListener("click", stop);
 }

@@ -193,6 +193,40 @@ async function steps(page) {
   );
   check("верный текст припева", /Вдоль ночных дорог/.test(lyricsText));
 
+  /* ── мусор из источника не должен попадать в текст ── */
+  const entitySongs = await page.evaluate(
+    () =>
+      window.__catalog.filter((s) =>
+        [...(s.verse || []), ...(s.chorus || [])].some(
+          (line) => /&#?\w+;|[\u2028\u2029]/.test(line),
+        ),
+      ).length,
+  );
+  check("в текстах нет HTML-сущностей", entitySongs === 0, entitySongs);
+
+  const kaban = await page.evaluate(() => {
+    const song = window.__catalog.find((s) => s.title === "Кабан");
+    return song ? song.verse[song.verse.length - 1] : "";
+  });
+  check("строка «Кабан» без мусора", kaban === "Кабан — мне бы солнца и чуток желудей (Хей)", kaban);
+
+  await page.evaluate(() => {
+    const row = [...T.rows()].find((r) =>
+      r.querySelector(".row-title").textContent === "Кабан",
+    );
+    if (row) T.click(row);
+  });
+  check(
+    "мусор не виден в тексте песни",
+    !/&#?\w+;/.test(await page.$eval("#lyricsBody", (n) => n.textContent)) &&
+      /чуток желудей/.test(
+        await page.$eval("#lyricsBody", (n) => n.textContent),
+      ),
+  );
+
+  // возвращаемся к песне, на которой проверялись плеер и текст
+  await page.evaluate(() => T.click(T.row("AJFHUiFof9M")));
+
   /* ── поиск ── */
   const searchCount = async (query) => {
     await page.evaluate((q) => T.typeSearch(q), query);
@@ -450,6 +484,112 @@ async function steps(page) {
       noembed[0].id,
     ),
   );
+
+  /* ── версии: вторая может быть запрещена для встраивания ── */
+  const versioned = await page.evaluate(() => {
+    const song = window.__catalog.find(
+      (s) => s.alt?.length && s.blocked?.includes(s.alt[0]),
+    );
+    return song
+      ? { id: song.id, alt: song.alt[0], title: song.title }
+      : null;
+  });
+  check("есть песня с заблокированной второй версией", !!versioned, versioned?.title);
+
+  if (versioned) {
+    // выбор версии 2 до запуска не должен теряться при нажатии ▶
+    await page.evaluate((id) => T.click(T.row(id)), versioned.id);
+    await page.evaluate(() => T.click(document.getElementById("btnAlt")));
+    check(
+      "кнопка версии переключает на версию 2",
+      (await page.$eval("#altLabel", (n) => n.textContent)) === "Версия 2/2",
+    );
+    check(
+      "подсказка предупреждает про версию на YouTube",
+      /только на YouTube/.test(await page.$eval("#emptySub", (n) => n.textContent)),
+    );
+
+    await page.evaluate(() => {
+      window.opened = [];
+    });
+    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
+    check(
+      "выбор версии не откатывается молча",
+      (await page.$eval("#altLabel", (n) => n.textContent)) === "Версия 2/2",
+    );
+    check(
+      "запрещённая версия открывается на YouTube",
+      (await page.evaluate(() => window.opened)).some((url) =>
+        url.includes(versioned.alt),
+      ),
+      (await page.evaluate(() => window.opened)).join(" "),
+    );
+    check(
+      "вместо версии 1 показано объяснение",
+      (await page.evaluate(
+        () => document.getElementById("videoBlocked").hidden === false,
+      )) && (await frameState(page)).hidden,
+    );
+    check(
+      "объяснение называет версию",
+      /Версия 2\/2/.test(
+        await page.$eval("#blockedSub", (n) => n.textContent),
+      ),
+    );
+    check(
+      "объяснение говорит про новую вкладку",
+      /новой вкладке/.test(
+        await page.$eval("#blockedSub", (n) => n.textContent),
+      ),
+    );
+
+    const tabsBefore = (await page.evaluate(() => window.opened)).length;
+    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
+    check(
+      "повторный ▶ не открывает новую вкладку",
+      (await page.evaluate(() => window.opened)).length === tabsBefore,
+    );
+    check(
+      "есть кнопка перехода на другую версию",
+      await page.evaluate(
+        () => document.getElementById("blockedAltBtn").hidden === false,
+      ),
+    );
+
+    await page.evaluate(() =>
+      T.click(document.getElementById("blockedAltBtn")),
+    );
+    check(
+      "кнопка возвращает на играющую версию",
+      (await page.$eval("#altLabel", (n) => n.textContent)) === "Версия 1/2",
+    );
+
+    // переключение версии на ходу игры не должно оставлять старую версию
+    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
+    await page.waitForFunction(
+      () => !document.getElementById("ytFrame").hidden,
+    );
+    await page.evaluate(() => T.click(document.getElementById("btnAlt")));
+    check(
+      "переключение на запрещённую версию останавливает видео",
+      (await frameState(page)).hidden &&
+        (await page.evaluate(
+          () => document.getElementById("videoBlocked").hidden === false,
+        )),
+    );
+
+    await page.evaluate(() => T.click(document.getElementById("blockedAltBtn")));
+    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
+    await page.waitForFunction(() =>
+      (document.getElementById("ytFrame").getAttribute("src") || "").includes(
+        "tOGTcsley1U",
+      ),
+    );
+    check(
+      "после возврата играет первая версия",
+      (await frameState(page)).src.includes("tOGTcsley1U"),
+    );
+  }
 
   // обычная песня по-прежнему играет в рамке
   const normalId = await page.evaluate(
