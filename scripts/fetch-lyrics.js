@@ -146,13 +146,13 @@ async function main() {
     if ((index + 1) % 5 === 0) {
       fs.writeFileSync(
         lyricsFile,
-        JSON.stringify(lyrics, null, 1) + "\n",
+        JSON.stringify(lyrics, null, 2) + "\n",
         "utf8",
       );
     }
   }
 
-  fs.writeFileSync(lyricsFile, JSON.stringify(lyrics, null, 1) + "\n", "utf8");
+  fs.writeFileSync(lyricsFile, JSON.stringify(lyrics, null, 2) + "\n", "utf8");
   console.log(`\nНайдено ${found} из ${pending.length}. Дальше: npm run build`);
 }
 

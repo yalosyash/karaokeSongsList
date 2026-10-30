@@ -6,6 +6,40 @@ const SYMBOLS = /^[^\p{L}\p{N}]+$/u;
 const MARKER =
   /^(instrumental|musical|interlude|соло|проигрыш|куплет|припев|chorus|verse|bridge|hook|outro|intro|\d+\.?)\s*$/i;
 
+const NAMED_ENTITIES = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+};
+
+/* LRCLIB отдаёт часть строк с HTML-сущностями: "&#x2028;" вместо переноса,
+   "&amp;" вместо "&". Иначе они видны в тексте как есть. */
+function decodeEntities(text) {
+  return text
+    .replace(/&#x([0-9a-f]+);/gi, (match, hex) => {
+      const code = parseInt(hex, 16);
+      return code > 0 && code <= 0x10ffff
+        ? String.fromCodePoint(code)
+        : match;
+    })
+    .replace(/&#(\d+);/g, (match, dec) => {
+      const code = Number(dec);
+      return code > 0 && code <= 0x10ffff
+        ? String.fromCodePoint(code)
+        : match;
+    })
+    .replace(/&([a-z]+);/gi, (match, name) => {
+      const value = NAMED_ENTITIES[name.toLowerCase()];
+      return value === undefined ? match : value;
+    });
+}
+
+/* Невидимые разделители строк и нулевой ширины: в тексте они не нужны. */
+const INVISIBLE = /[\u2028\u2029\u200b-\u200d\ufeff]/g;
+
 const isNoise = (line) => {
   const text = line.trim();
   if (!text) return true;
@@ -18,7 +52,8 @@ const isNoise = (line) => {
 export function cleanLines(plain) {
   if (!plain) return null;
 
-  const text = String(plain)
+  const text = decodeEntities(String(plain))
+    .replace(INVISIBLE, " ")
     .replace(/\r/g, "")
     .split("\n")
     .map((line) => line.replace(/\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]/g, ""))
