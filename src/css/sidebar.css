@@ -101,6 +101,12 @@
 #search:focus ~ .search-kbd {
   opacity: 0;
 }
+#search:not(:placeholder-shown) ~ .search-kbd {
+  opacity: 0;
+}
+.search-wrap:has(.search-clear:not([hidden])) .search-kbd {
+  opacity: 0;
+}
 .search-clear {
   position: absolute;
   right: 8px;
