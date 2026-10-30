@@ -697,7 +697,7 @@
     if (list.length > 1 && pick.id === state.currentId) {
       pick = list[(list.indexOf(pick) + 1) % list.length];
     }
-    select(pick.id, { autoplay: true });
+    select(pick.id);
     scrollToRow(pick.id);
   }
 

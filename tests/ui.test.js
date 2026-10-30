@@ -64,7 +64,7 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   const sorted = [...arts].sort((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'base' }));
   check('сортировка по исполнителю', JSON.stringify(arts) === JSON.stringify(sorted));
 
-  /* ---------- воспроизведение ---------- */
+  /* ---------- выбор без запуска видео ---------- */
   const target = [...doc.querySelectorAll('.row')].find((r) => r.dataset.id === 'AJFHUiFof9M');
   click(target);
   await waitFor(() => doc.getElementById('nowTitle').textContent === 'Знаешь ли ты');
@@ -74,6 +74,16 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   check('строка подсвечена', doc.querySelector('.row.active')?.dataset.id === 'AJFHUiFof9M');
 
   const frame = doc.getElementById('ytFrame');
+  check('клик по песне не запускает видео',
+    frame.hidden === true && !frame.getAttribute('src'), frame.src);
+  check('кнопка осталась «Петь»', doc.getElementById('btnPlayLabel').textContent === 'Петь');
+  check('подсказка предлагает запуск',
+    /Нажмите ▶/.test(doc.getElementById('emptySub').textContent));
+  check('выбор песни запоминается', win.localStorage.getItem('karaoke.last.v1') === 'AJFHUiFof9M');
+
+  /* ---------- запуск по явному действию ---------- */
+  key('Enter');
+  await waitFor(() => !doc.getElementById('ytFrame').hidden);
   check('плеер открылся на странице', frame.hidden === false && frame.src.includes('AJFHUiFof9M'), frame.src);
   check('автозапуск включён', frame.src.includes('autoplay=1'));
   check('кнопка стала «Пауза»', doc.getElementById('btnPlayLabel').textContent === 'Пауза');
@@ -165,6 +175,8 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   const prev = doc.querySelector('.row.active')?.dataset.id;
   key('ArrowDown');
   check('стрелка вниз переключает песню', doc.querySelector('.row.active')?.dataset.id !== prev);
+  check('стрелка не запускает видео',
+    doc.getElementById('ytFrame').hidden === true && !doc.getElementById('ytFrame').getAttribute('src'));
 
   key('/');
   check('слэш фокусирует поиск', doc.activeElement === doc.getElementById('search'));
@@ -198,6 +210,9 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   const blockedSong = noembedSongs[0];
   const blockedRow = [...doc.querySelectorAll('.row')].find((r) => r.dataset.id === blockedSong.id);
   click(blockedRow);
+  // selection alone must not try to build a player for a video that cannot be embedded
+  check('выбор такой песни не грузит видео', doc.getElementById('ytFrame').hidden === true);
+  click(doc.getElementById('bigPlay'));
   await waitFor(() => doc.getElementById('videoBlocked').hidden === false);
 
   check('вместо чёрного плеера — понятное сообщение',
@@ -219,10 +234,24 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   const normalSong = win.SONGS.find((s) => !s.noembed);
   click([...doc.querySelectorAll('.row')].find((r) => r.dataset.id === normalSong.id));
   await waitFor(() => doc.getElementById('nowTitle').textContent === normalSong.title);
+  click(doc.getElementById('bigPlay'));
+  await waitFor(() => doc.getElementById('ytFrame').hidden === false);
   check('обычная песня играет в плеере',
     doc.getElementById('videoBlocked').hidden === true &&
       doc.getElementById('ytFrame').hidden === false &&
       doc.getElementById('ytFrame').src.includes(normalSong.id));
+
+  /* ---------- двойной клик всё ещё запускает ---------- */
+  const dblSong = win.SONGS.find((s) => !s.noembed && s.id !== normalSong.id);
+  const dblRow = [...doc.querySelectorAll('.row')].find((r) => r.dataset.id === dblSong.id);
+  click(dblRow);
+  check('первый клик только выбирает',
+    doc.getElementById('ytFrame').hidden === true || !doc.getElementById('ytFrame').src.includes(dblSong.id));
+  dblRow.dispatchEvent(new win.MouseEvent('dblclick', { bubbles: true }));
+  await waitFor(() => doc.getElementById('nowTitle').textContent === dblSong.title &&
+    doc.getElementById('ytFrame').hidden === false);
+  check('двойной клик запускает видео',
+    doc.getElementById('ytFrame').src.includes(dblSong.id) && doc.getElementById('btnPlayLabel').textContent === 'Пауза');
 
   /* ---------- отчёт ---------- */
   console.log('');
