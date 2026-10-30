@@ -1,0 +1,16 @@
+{
+  "name": "songlist-karaoke",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Караоке-панель для стрима: список песен, первые слова и плеер на одном экране",
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node tests/ui.test.js",
+    "build": "node tools/merge.js && node tools/build-data.js",
+    "stat": "node tools/stat.js"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0",
+    "puppeteer-core": "^24.0.0"
+  }
+}

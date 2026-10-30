@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Караоке · песни для стрима</title>
+    <meta name="theme-color" content="#0b0b12" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta
+      name="description"
+      content="Караоке-панель для стрима: список песен, первые слова и плеер на одном экране."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ─────────────────────────  СПИСОК  ───────────────────────── -->
+      <aside class="list-pane" id="listPane">
+        <div class="pane-head">
+          <div class="brand">
+            <span class="brand-mark">🎤</span>
+            <span class="brand-name">Караоке</span>
+            <span class="brand-count" id="totalCount"></span>
+          </div>
+
+          <div class="search-wrap">
+            <svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M10.5 3a7.5 7.5 0 1 0 4.55 13.46l4.24 4.24a1 1 0 0 0 1.42-1.42l-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"
+              />
+            </svg>
+            <input
+              id="search"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Песня, исполнитель, жанр…"
+              aria-label="Поиск песен"
+            />
+            <kbd class="search-kbd">/</kbd>
+            <button
+              class="search-clear"
+              id="searchClear"
+              title="Очистить (Esc)"
+              aria-label="Очистить поиск"
+              hidden
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="toolbar">
+            <label class="select-wrap">
+              <span class="select-label">Сортировка</span>
+              <select id="sort" aria-label="Сортировка">
+                <option value="artist">По исполнителю</option>
+                <option value="title">По названию</option>
+                <option value="category">По категории</option>
+                <option value="genre">По жанру</option>
+              </select>
+            </label>
+            <button
+              class="ghost-btn"
+              id="randomBtn"
+              title="Случайная песня (R)"
+            >
+              <span class="dice">🎲</span> Случайно
+            </button>
+          </div>
+
+          <div
+            class="chips"
+            id="chips"
+            role="tablist"
+            aria-label="Фильтры"
+          ></div>
+
+          <details class="more-filters" id="moreFilters">
+            <summary>Жанр и язык</summary>
+            <div class="more-filters-body">
+              <label class="select-wrap">
+                <span class="select-label">Жанр</span>
+                <select id="genreFilter" aria-label="Фильтр по жанру">
+                  <option value="">Все жанры</option>
+                </select>
+              </label>
+              <label class="select-wrap">
+                <span class="select-label">Язык</span>
+                <select id="langFilter" aria-label="Фильтр по языку">
+                  <option value="">Любой</option>
+                  <option value="ru">Русские</option>
+                  <option value="en">Зарубежные</option>
+                </select>
+              </label>
+            </div>
+          </details>
+
+          <div class="result-bar">
+            <span id="resultCount">—</span>
+            <button class="link-btn" id="resetFilters" hidden>
+              Сбросить фильтры
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="song-list"
+          id="songList"
+          role="listbox"
+          aria-label="Список песен"
+        ></div>
+        <div class="list-empty" id="listEmpty" hidden>
+          <div class="le-ico">🔍</div>
+          <p>Ничего не нашлось</p>
+          <button class="ghost-btn" id="resetFilters2">Сбросить фильтры</button>
+        </div>
+      </aside>
+
+      <!-- ─────────────────────────  ПЛЕЕР + ТЕКСТ  ───────────────────────── -->
+      <main class="detail-pane" id="detailPane">
+        <div class="detail-inner">
+          <section class="player-card">
+            <div class="video-shell" id="videoShell">
+              <div class="video-empty" id="videoEmpty">
+                <div class="ve-glow"></div>
+                <div class="ve-ico">🎤</div>
+                <div class="ve-title" id="emptyTitle">Выберите песню</div>
+                <div class="ve-sub" id="emptySub">
+                  Клик по песне слева — выбрать, ▶ или двойной клик — петь
+                </div>
+              </div>
+              <iframe
+                id="ytFrame"
+                title="Караоке-плеер"
+                hidden
+                allow="
+                  autoplay;
+                  encrypted-media;
+                  picture-in-picture;
+                  fullscreen;
+                "
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+              <div class="video-blocked" id="videoBlocked" hidden>
+                <div class="vb-glow"></div>
+                <div class="vb-ico">↗</div>
+                <div class="vb-title">Это видео играет только на YouTube</div>
+                <div class="vb-sub" id="blockedSub">
+                  Автор запретил встраивание — встроенный плеер его не покажет.
+                </div>
+                <button class="vb-btn" id="openYtBtn" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
+                    />
+                  </svg>
+                  Смотреть на YouTube
+                </button>
+              </div>
+              <button
+                class="big-play"
+                id="bigPlay"
+                title="Включить"
+                aria-label="Включить караоке"
+                hidden
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div class="now" id="nowBar">
+              <div class="now-text">
+                <div class="now-artist" id="nowArtist">Караоке для стрима</div>
+                <h1 class="now-title" id="nowTitle">Выберите песню</h1>
+                <div class="now-tags" id="nowTags"></div>
+              </div>
+              <div class="now-actions">
+                <button
+                  class="alt-btn"
+                  id="btnAlt"
+                  hidden
+                  title="Другая версия караоке"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M7 7h9.59l-2.3-2.3 1.42-1.4L20 7.5l-4.29 4.2-1.42-1.4 2.3-2.3H7V7Zm10 10H7.41l2.3 2.3-1.42 1.4L4 16.5l4.29-4.2 1.42 1.4-2.3 2.3H17v1Z"
+                    />
+                  </svg>
+                  <span id="altLabel">Версия 2</span>
+                </button>
+                <button class="primary-btn" id="btnPlay" disabled>
+                  <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
+                    />
+                  </svg>
+                  <span id="btnPlayLabel">Петь</span>
+                </button>
+                <button
+                  class="icon-btn"
+                  id="btnRestart"
+                  title="С начала (0)"
+                  aria-label="Начать с начала"
+                  disabled
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8Z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="icon-btn"
+                  id="btnYt"
+                  title="Открыть на YouTube (Y)"
+                  aria-label="Открыть на YouTube"
+                  disabled
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M14 3h7v7h-2V6.41l-8.29 8.3-1.42-1.42L17.59 5H14V3Z"
+                    />
+                    <path
+                      d="M5 5h6v2H6v12h12v-5h2v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="icon-btn star-btn"
+                  id="btnFav"
+                  title="В избранное (S)"
+                  aria-label="В избранное"
+                  disabled
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="m12 3.5 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.8l6-.8L12 3.5Z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="icon-btn"
+                  id="btnStop"
+                  title="Стоп (Esc)"
+                  aria-label="Остановить"
+                  disabled
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="lyrics-card" id="lyricsCard">
+            <div class="lyrics-head">
+              <div class="lyrics-title">
+                <span class="dot"></span> Первые слова
+                <span class="lyrics-hint"
+                  >первый куплет и припев — чтобы вспомнить мотив</span
+                >
+              </div>
+              <div class="lyrics-tools">
+                <button
+                  class="icon-btn sm"
+                  id="fontMinus"
+                  title="Меньше текст"
+                  aria-label="Уменьшить текст"
+                >
+                  A−
+                </button>
+                <button
+                  class="icon-btn sm"
+                  id="fontPlus"
+                  title="Больше текст"
+                  aria-label="Увеличить текст"
+                >
+                  A+
+                </button>
+                <button
+                  class="icon-btn sm"
+                  id="btnFullLyrics"
+                  title="Текст на весь экран (F)"
+                  aria-label="Текст на весь экран"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M4 9V4h5v2H6v3H4Zm16 0h-2V6h-3V4h5v5ZM4 15h2v3h3v2H4v-5Zm14 0h2v5h-5v-2h3v-3Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="lyrics-body" id="lyricsBody">
+              <div class="lyrics-empty">
+                Текст появится здесь, как только выберете песню.
+              </div>
+            </div>
+          </section>
+
+          <footer class="hotkeys">
+            <span><kbd>/</kbd> поиск</span>
+            <span><kbd>↑</kbd><kbd>↓</kbd> выбор</span>
+            <span><kbd>Enter</kbd> петь</span>
+            <span><kbd>Space</kbd> пауза</span>
+            <span><kbd>S</kbd> в избранное</span>
+            <span><kbd>F</kbd> текст во весь экран</span>
+            <span><kbd>Esc</kbd> стоп</span>
+          </footer>
+        </div>
+      </main>
+    </div>
+
+    <!-- большой текст -->
+    <div class="lyrics-overlay" id="lyricsOverlay" hidden>
+      <button class="overlay-close" id="overlayClose" aria-label="Закрыть">
+        ×
+      </button>
+      <div class="overlay-inner" id="overlayInner"></div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <script>
+      // offline cache: the list opens instantly even if the internet drops.
+      // The worker is network-first, so an updated page always shows up on reload.
+      if (
+        "serviceWorker" in navigator &&
+        location.protocol.startsWith("http")
+      ) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js", { updateViaCache: "none" })
+            .then((reg) => reg.update().catch(() => {}))
+            .catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>

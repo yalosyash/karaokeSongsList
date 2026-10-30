@@ -1,0 +1,91 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>embed check</title>
+<style>
+  body { margin: 0; background: #000; }
+  .cell { display: inline-block; }
+  iframe { width: 320px; height: 180px; border: 0; display: block; }
+</style>
+<div id="stage"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  window.RESULTS = {};
+  window.API_READY = false;
+
+  const HOST = new URLSearchParams(location.search).get('host') || 'https://www.youtube-nocookie.com';
+  window.HOST_USED = HOST;
+
+  function onYouTubeIframeAPIReady() {
+    window.API_READY = true;
+  }
+
+  /**
+   * Прогоняет пачку id через настоящий плеер YouTube на заданном хосте.
+   * Ключевой признак запрета встраивания — onError со значением 101/150.
+   */
+  window.checkBatch = function (ids) {
+    return new Promise((resolve) => {
+      const stage = document.getElementById('stage');
+      const results = {};
+      let left = ids.length;
+      if (!left) return resolve(results);
+
+      const done = () => {
+        if (--left === 0) {
+          stage.textContent = '';
+          window.RESULTS = Object.assign(window.RESULTS, results);
+          resolve(results);
+        }
+      };
+
+      for (const id of ids) {
+        const holder = document.createElement('div');
+        holder.className = 'cell';
+        stage.appendChild(holder);
+
+        const rec = { id, status: 'pending', error: null };
+        results[id] = rec;
+        let settled = false;
+        let timer = null;
+
+        const settle = (patch) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          Object.assign(rec, patch);
+          const p = player;
+          setTimeout(() => {
+            try { p && p.destroy(); } catch {}
+            holder.remove();
+          }, 0);
+          done();
+        };
+
+        timer = setTimeout(() => settle({ status: 'silent' }), 20000);
+
+        const player = new YT.Player(holder, {
+          videoId: id,
+          host: HOST,
+          playerVars: {
+            autoplay: 1,
+            rel: 0,
+            playsinline: 1,
+            mute: 1,
+            origin: location.origin,
+          },
+          events: {
+            onReady: (e) => {
+              rec.ready = true;
+              setTimeout(() => { try { e.target.mute(); e.target.playVideo(); } catch {} }, 200);
+            },
+            onStateChange: (e) => {
+              if (e.data === YT.PlayerState.PLAYING) settle({ status: 'ok' });
+              else if (e.data === YT.PlayerState.CUED) settle({ status: 'cued' });
+            },
+            onError: (e) => settle({ status: 'error', error: e.data }),
+          },
+        });
+      }
+    });
+  };
+</script>
