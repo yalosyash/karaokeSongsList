@@ -27,7 +27,7 @@ for (const c of clean) result.set(c.id, { verse: c.verse, chorus: c.chorus });
 
 // ordered: later sources override earlier ones (they were verified manually for bad matches)
 function apply(file, skip = []) {
-  const d = JSON.parse(fs.readFileSync(join(__dirname, file), 'utf8'));
+  const d = JSON.parse(fs.readFileSync(join(__dirname, file), "utf8"));
   for (const [id, v] of Object.entries(d)) {
     if (skip.includes(id)) continue;
     const b = build(v.plain);
@@ -35,11 +35,12 @@ function apply(file, skip = []) {
   }
 }
 
-apply('lyrics-extra.json');
-apply('lyrics-extra2.json', ['zQq3kWXTA50']);
-apply('lyrics-extra3.json', ['zQq3kWXTA50']);
-apply('lyrics-extra4.json', ['3f3GQyRvJ08']);
-apply('lyrics-final.json');
+apply("lyrics-extra.json");
+apply("lyrics-extra2.json", ["zQq3kWXTA50"]);
+apply("lyrics-extra3.json", ["zQq3kWXTA50"]);
+apply("lyrics-extra4.json", ["3f3GQyRvJ08"]);
+apply("lyrics-extra5.json");
+apply("lyrics-final.json");
 
 // hand-verified text
 result.set("3f3GQyRvJ08", {
@@ -50,6 +51,41 @@ result.set("3f3GQyRvJ08", {
     "Мир подарила мне и тебе.",
   ],
   chorus: null,
+});
+
+// auto-split mistakes: a stray trailing repeat, and a pre-chorus kept as the chorus
+result.set("32DLMVENExg", {
+  verse: [
+    "Город расколется на мириады зеркал",
+    "Рвутся в любовных пожарах петарды сердец",
+    "Стенка, за стенкой душа, за душою тоска",
+    "Тянет в болотную топь заколдованных мест",
+    "Я же тебя никогда никому не отдам",
+    "Пело сердечко и плакали гордые льды",
+    "Наши тела бы могли отыскать по следам",
+    "Если бы мы не забыли оставить следы",
+  ],
+  chorus: [
+    "Дайте мне белые крылья, я утопаю в омуте",
+    "Через тернии, провода, в небо, только б не мучиться",
+    "Тучкой маленькой обернусь и над твоим крохотным домиком",
+    "Разрыдаюсь косым дождём. Знаешь, я так соскучился",
+  ],
+});
+
+result.set("VUN2QGtkuoM", {
+  verse: [
+    "Слепая ночь легла у ног и не пускает за порог.",
+    "Брожу по дому как во сне, но мне покоя нет нигде.",
+    "Тупая боль пробьет висок и пальцы лягут на курок,",
+    "А в зеркалах качнется призрак - призрак любви.",
+  ],
+  chorus: [
+    "Возьми мое сердце, возьми мою душу -",
+    "Я так одинок в этот час, что хочу умереть.",
+    "Мне некуда деться, свой мир я разрушил -",
+    "По мне плачет только свеча на холодной заре.",
+  ],
 });
 
 const out = songs.map((s) => {

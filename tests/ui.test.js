@@ -120,7 +120,8 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   const rockChip = [...doc.querySelectorAll('.chip')].find((c) => c.dataset.cat === 'Русский рок');
   click(rockChip);
   const rockN = doc.querySelectorAll('.row').length;
-  check('фильтр по категории', rockN === 30, rockN);
+  check('фильтр по категории',
+    rockN === win.SONGS.filter((s) => s.category === 'Русский рок').length, rockN);
   check('чип выбран', doc.querySelector('.chip[data-cat="Русский рок"]').getAttribute('aria-selected') === 'true');
 
   click(doc.querySelector('.chip[data-cat="Русский рок"]'));
@@ -129,7 +130,9 @@ const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: St
   const genre = doc.getElementById('genreFilter');
   genre.value = 'Хард-рок';
   genre.dispatchEvent(new win.Event('change', { bubbles: true }));
-  check('фильтр по жанру', doc.querySelectorAll('.row').length === 2, doc.querySelectorAll('.row').length);
+  check('фильтр по жанру',
+    doc.querySelectorAll('.row').length === win.SONGS.filter((s) => s.genre === 'Хард-рок').length,
+    doc.querySelectorAll('.row').length);
 
   const lang = doc.getElementById('langFilter');
   lang.value = 'en';
