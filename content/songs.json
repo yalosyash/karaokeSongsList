@@ -1360,5 +1360,37 @@
     "genre": "Панк-рок",
     "category": "Русский рок",
     "lang": "ru"
+  },
+  {
+    "id": "TFLN8j21QN4",
+    "artist": "Алла Пугачёва",
+    "title": "Позови меня с собой",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "kax3CgABH9U",
+    "artist": "Алла Пугачёва",
+    "title": "Арлекино",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "yyHrRT4vh1Q",
+    "artist": "Noize MC",
+    "title": "Любимый цвет",
+    "genre": "Хип-хоп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "Rr7cHGJI4sM",
+    "artist": "Служебный Роман",
+    "title": "В моей душе покоя нет",
+    "genre": "Саундтрек",
+    "category": "Советская эстрада и кино",
+    "lang": "ru"
   }
 ]
