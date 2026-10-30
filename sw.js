@@ -1,68 +1,85 @@
-/* Offline-first: the song list and lyrics must open instantly, even without internet.
-   The karaoke video itself still streams from YouTube.
+/* Офлайн-кеш: список песен и тексты должны открываться мгновенно, даже без сети.
+   Само видео всё равно приходит с YouTube.
 
-   Strategy: network-first with a cache fallback. Cache-first would keep serving
-   old HTML/JS/CSS after an update, which is exactly what caused changes to the
-   page to "not appear" until the cache was cleared by hand. */
-const CACHE = "karaoke-v2";
+   Стратегия — network-first с запасным кешем. Cache-first отдавал бы старые
+   HTML/JS/CSS после обновления: изменения «не появлялись» до ручной очистки кеша. */
+
+const CACHE = "karaoke-v3";
+
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./data.js",
-  "./manifest.webmanifest",
-  "./icon.svg",
+  "./assets/manifest.webmanifest",
+  "./assets/icon.svg",
+  "./data/catalog.js",
+  "./src/main.js",
+  "./src/core/dom.js",
+  "./src/core/state.js",
+  "./src/core/storage.js",
+  "./src/core/settings.js",
+  "./src/core/text.js",
+  "./src/core/offline.js",
+  "./src/catalog/catalog.js",
+  "./src/catalog/filter.js",
+  "./src/features/actions.js",
+  "./src/features/controls.js",
+  "./src/features/favorites.js",
+  "./src/features/filters.js",
+  "./src/features/keyboard.js",
+  "./src/features/list.js",
+  "./src/features/lyrics.js",
+  "./src/features/player.js",
+  "./src/features/player/youtube.js",
+  "./src/css/tokens.css",
+  "./src/css/base.css",
+  "./src/css/sidebar.css",
+  "./src/css/player.css",
+  "./src/css/lyrics.css",
+  "./src/css/responsive.css",
 ];
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(
+self.addEventListener("install", (event) => {
+  event.waitUntil(
     caches
       .open(CACHE)
-      .then((c) => c.addAll(ASSETS))
+      .then((cache) => cache.addAll(ASSETS))
       .then(() => self.skipWaiting()),
   );
 });
 
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
     caches
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)),
+          keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)),
         ),
       )
       .then(() => self.clients.claim()),
   );
 });
 
-self.addEventListener("fetch", (e) => {
-  const req = e.request;
-  if (req.method !== "GET") return;
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  if (request.method !== "GET") return;
 
-  const url = new URL(req.url);
-  // never cache YouTube traffic
-  if (
-    url.hostname.includes("youtube") ||
-    url.hostname.includes("ytimg") ||
-    url.hostname.includes("google")
-  )
-    return;
+  const url = new URL(request.url);
 
+  // трафик YouTube и шрифтов не кешируем
   if (url.origin !== location.origin) return;
 
-  // network-first: always try to get the current file, fall back to the
-  // cached copy only when offline (that is when speed matters most)
-  e.respondWith(
-    fetch(req)
-      .then((res) => {
-        if (res && res.status === 200) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, copy));
         }
-        return res;
+        return response;
       })
-      .catch(() => caches.match(req).then((hit) => hit || Response.error())),
+      .catch(() =>
+        caches.match(request).then((hit) => hit || Response.error()),
+      ),
   );
 });

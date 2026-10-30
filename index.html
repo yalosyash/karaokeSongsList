@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Караоке · песни для стрима</title>
     <meta name="theme-color" content="#0b0b12" />
-    <link rel="icon" href="icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="manifest" href="assets/manifest.webmanifest" />
     <meta
       name="description"
       content="Караоке-панель для стрима: список песен, первые слова и плеер на одном экране."
@@ -18,9 +18,55 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="src/css/tokens.css" />
+    <link rel="stylesheet" href="src/css/base.css" />
+    <link rel="stylesheet" href="src/css/sidebar.css" />
+    <link rel="stylesheet" href="src/css/player.css" />
+    <link rel="stylesheet" href="src/css/lyrics.css" />
+    <link rel="stylesheet" href="src/css/responsive.css" />
   </head>
   <body>
+    <!-- Иконки лежат в одном месте: ниже на них ссылаются через <use href="#i-…"> -->
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+          d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
+        />
+      </symbol>
+      <symbol id="i-star" viewBox="0 0 24 24">
+        <path
+          d="m12 3.5 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.8l6-.8L12 3.5Z"
+        />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path
+          d="M10.5 3a7.5 7.5 0 1 0 4.55 13.46l4.24 4.24a1 1 0 0 0 1.42-1.42l-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"
+        />
+      </symbol>
+      <symbol id="i-restart" viewBox="0 0 24 24">
+        <path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8Z" />
+      </symbol>
+      <symbol id="i-external" viewBox="0 0 24 24">
+        <path d="M14 3h7v7h-2V6.41l-8.29 8.3-1.42-1.42L17.59 5H14V3Z" />
+        <path
+          d="M5 5h6v2H6v12h12v-5h2v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+        />
+      </symbol>
+      <symbol id="i-stop" viewBox="0 0 24 24">
+        <rect x="6" y="6" width="12" height="12" rx="2" />
+      </symbol>
+      <symbol id="i-fullscreen" viewBox="0 0 24 24">
+        <path
+          d="M4 9V4h5v2H6v3H4Zm16 0h-2V6h-3V4h5v5ZM4 15h2v3h3v2H4v-5Zm14 0h2v5h-5v-2h3v-3Z"
+        />
+      </symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24">
+        <path
+          d="M7 7h9.59l-2.3-2.3 1.42-1.4L20 7.5l-4.29 4.2-1.42-1.4 2.3-2.3H7V7Zm10 10H7.41l2.3 2.3-1.42 1.4L4 16.5l4.29-4.2 1.42 1.4-2.3 2.3H17v1Z"
+        />
+      </symbol>
+    </svg>
+
     <div class="app">
       <!-- ─────────────────────────  СПИСОК  ───────────────────────── -->
       <aside class="list-pane" id="listPane">
@@ -32,10 +78,8 @@
           </div>
 
           <div class="search-wrap">
-            <svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M10.5 3a7.5 7.5 0 1 0 4.55 13.46l4.24 4.24a1 1 0 0 0 1.42-1.42l-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"
-              />
+            <svg class="search-ico" aria-hidden="true">
+              <use href="#i-search" />
             </svg>
             <input
               id="search"
@@ -157,11 +201,7 @@
                   Автор запретил встраивание — встроенный плеер его не покажет.
                 </div>
                 <button class="vb-btn" id="openYtBtn" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
-                    />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-play" /></svg>
                   Смотреть на YouTube
                 </button>
               </div>
@@ -172,11 +212,7 @@
                 aria-label="Включить караоке"
                 hidden
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
-                  />
-                </svg>
+                <svg aria-hidden="true"><use href="#i-play" /></svg>
               </button>
             </div>
 
@@ -193,18 +229,12 @@
                   hidden
                   title="Другая версия караоке"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M7 7h9.59l-2.3-2.3 1.42-1.4L20 7.5l-4.29 4.2-1.42-1.4 2.3-2.3H7V7Zm10 10H7.41l2.3 2.3-1.42 1.4L4 16.5l4.29-4.2 1.42 1.4-2.3 2.3H17v1Z"
-                    />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-swap" /></svg>
                   <span id="altLabel">Версия 2</span>
                 </button>
                 <button class="primary-btn" id="btnPlay" disabled>
-                  <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.4-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z"
-                    />
+                  <svg class="ico-play" aria-hidden="true">
+                    <use href="#i-play" />
                   </svg>
                   <span id="btnPlayLabel">Петь</span>
                 </button>
@@ -215,11 +245,7 @@
                   aria-label="Начать с начала"
                   disabled
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8Z"
-                    />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-restart" /></svg>
                 </button>
                 <button
                   class="icon-btn"
@@ -228,14 +254,7 @@
                   aria-label="Открыть на YouTube"
                   disabled
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M14 3h7v7h-2V6.41l-8.29 8.3-1.42-1.42L17.59 5H14V3Z"
-                    />
-                    <path
-                      d="M5 5h6v2H6v12h12v-5h2v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
-                    />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-external" /></svg>
                 </button>
                 <button
                   class="icon-btn star-btn"
@@ -244,11 +263,7 @@
                   aria-label="В избранное"
                   disabled
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="m12 3.5 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.8l6-.8L12 3.5Z"
-                    />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-star" /></svg>
                 </button>
                 <button
                   class="icon-btn"
@@ -257,9 +272,7 @@
                   aria-label="Остановить"
                   disabled
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="6" y="6" width="12" height="12" rx="2" />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-stop" /></svg>
                 </button>
               </div>
             </div>
@@ -296,11 +309,7 @@
                   title="Текст на весь экран (F)"
                   aria-label="Текст на весь экран"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M4 9V4h5v2H6v3H4Zm16 0h-2V6h-3V4h5v5ZM4 15h2v3h3v2H4v-5Zm14 0h2v5h-5v-2h3v-3Z"
-                    />
-                  </svg>
+                  <svg aria-hidden="true"><use href="#i-fullscreen" /></svg>
                 </button>
               </div>
             </div>
@@ -333,22 +342,6 @@
       <div class="overlay-inner" id="overlayInner"></div>
     </div>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
-    <script>
-      // offline cache: the list opens instantly even if the internet drops.
-      // The worker is network-first, so an updated page always shows up on reload.
-      if (
-        "serviceWorker" in navigator &&
-        location.protocol.startsWith("http")
-      ) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("sw.js", { updateViaCache: "none" })
-            .then((reg) => reg.update().catch(() => {}))
-            .catch(() => {});
-        });
-      }
-    </script>
+    <script type="module" src="src/main.js"></script>
   </body>
 </html>

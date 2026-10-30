@@ -1,0 +1,110 @@
+/* Базовые стили: сброс, типографика, скроллбары и общая сетка экрана. */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(
+      1100px 700px at 12% -10%,
+      rgba(176, 108, 255, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 105% 8%,
+      rgba(255, 95, 162, 0.13),
+      transparent 55%
+    ),
+    radial-gradient(
+      700px 700px at 60% 110%,
+      rgba(73, 224, 210, 0.07),
+      transparent 60%
+    ),
+    var(--bg);
+  color: var(--text);
+  font-family:
+    "Manrope",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 15px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  /* subtle noise so the dark bg doesn't band */
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+svg {
+  fill: currentColor;
+}
+
+/* Спрайт иконок: символы переиспользуются через <use>, сам контейнер не занимает места. */
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+::selection {
+  background: rgba(176, 108, 255, 0.35);
+}
+
+/* ── scrollbars ───────────────────────────────────────────── */
+.song-list::-webkit-scrollbar,
+.lyrics-body::-webkit-scrollbar,
+.overlay-inner::-webkit-scrollbar {
+  width: 10px;
+}
+.song-list::-webkit-scrollbar-thumb,
+.lyrics-body::-webkit-scrollbar-thumb,
+.overlay-inner::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.11);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.song-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  background-clip: padding-box;
+}
+
+/* ── layout ───────────────────────────────────────────────── */
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--list-w) minmax(0, 1fr);
+  height: 100dvh;
+}

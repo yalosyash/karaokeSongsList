@@ -1,11 +1,11 @@
-# dependencies
+# зависимости
 node_modules/
 
-# logs
+# локальные артефакты прогонов
 *.log
-serve.err
+tests/screens/
 
-# OS / editor
+# ОС и редакторы
 .DS_Store
 Thumbs.db
 .idea/

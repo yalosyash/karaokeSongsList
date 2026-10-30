@@ -1,0 +1,107 @@
+/* ============================================================
+   ADAPTIVE
+   ============================================================ */
+@media (max-width: 1180px) {
+  :root {
+    --list-w: 350px;
+  }
+  .detail-inner {
+    padding: 18px 18px 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100dvh;
+  }
+  .list-pane {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    height: 62dvh;
+    min-width: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #0b0b13;
+  }
+  /* compact header so more songs fit on a phone */
+  .pane-head {
+    padding: 12px 12px 6px;
+    gap: 8px;
+  }
+  .brand-name {
+    font-size: 15px;
+  }
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 94%, transparent);
+    mask-image: linear-gradient(90deg, #000 94%, transparent);
+  }
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+  .more-filters {
+    display: none;
+  }
+  .detail-pane {
+    overflow: visible;
+  }
+  .detail-inner {
+    padding: 14px 12px 10px;
+    gap: 12px;
+  }
+  .video-shell {
+    width: 100%;
+  }
+  .video-shell.is-blocked {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  .now {
+    flex-wrap: wrap;
+  }
+  .now-actions {
+    width: 100%;
+  }
+  .primary-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  .lyrics-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .now-title {
+    font-size: 17px;
+  }
+  .now-actions .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .primary-btn {
+    height: 38px;
+  }
+  .hotkeys {
+    display: none;
+  }
+  .brand-count {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

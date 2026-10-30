@@ -1,0 +1,20 @@
+/* Дизайн-токены: цвета, тени, радиусы, размеры. Меняются только здесь. */
+:root {
+  --bg: #0a0a11;
+  --bg-2: #10101a;
+  --panel: rgba(255, 255, 255, 0.035);
+  --panel-2: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --text: #f2f3f7;
+  --muted: #9a9db0;
+  --muted-2: #6f7288;
+  --accent: #b06cff;
+  --accent-2: #ff5fa2;
+  --accent-3: #49e0d2;
+  --grad: linear-gradient(115deg, #b06cff 0%, #ff5fa2 100%);
+  --radius: 18px;
+  --list-w: 400px;
+  --lyrics-scale: 1;
+  color-scheme: dark;
+}

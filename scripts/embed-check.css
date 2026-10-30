@@ -1,0 +1,17 @@
+/* Стенд для проверки встраивания: сетка маленьких плееров YouTube. */
+
+body {
+  margin: 0;
+  background: #000;
+}
+
+.cell {
+  display: inline-block;
+}
+
+iframe {
+  width: 320px;
+  height: 180px;
+  border: 0;
+  display: block;
+}

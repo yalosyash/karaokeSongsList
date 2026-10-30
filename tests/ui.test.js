@@ -1,273 +1,519 @@
-/**
- * Сквозной тест интерфейса: поднимает настоящую страницу в jsdom и кликает по ней.
- * Запуск:  npm test
- */
-const fs = require('fs');
-const path = require('path');
-const { JSDOM } = require('jsdom');
+/* Сквозной тест интерфейса: поднимает настоящую страницу в headless Chrome
+   и кликает по ней, как пользователь.
 
-const root = path.join(__dirname, '..');
-const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+   Запуск: npm test
+   Нужен Google Chrome; другой путь задаётся через CHROME_PATH. */
 
-const dom = new JSDOM(html, {
-  runScripts: 'dangerously',
-  resources: 'usable',
-  url: 'http://localhost:4173/',
-  pretendToBeVisual: true,
-  beforeParse(win) {
-    win.HTMLElement.prototype.scrollIntoView = function () {};
-    win.CSS = win.CSS || {};
-    win.CSS.escape = (s) => String(s).replace(/[^a-zA-Z0-9_-]/g, (c) => '\\' + c);
-    win.localStorage.clear();
-  },
-});
+import { spawn } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const win = dom.window;
-const doc = win.document;
-const errors = [];
-win.addEventListener('error', (e) => errors.push('window error: ' + e.message));
+import puppeteer from "puppeteer-core";
 
-function waitFor(pred, timeout = 5000) {
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const PORT = 4287;
+const BASE = `http://localhost:${PORT}/`;
+const CHROME =
+  process.env.CHROME_PATH ||
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+
+const results = [];
+const check = (name, ok, extra = "") =>
+  results.push({ name, ok: !!ok, extra: String(extra) });
+
+function startServer() {
+  const server = spawn(process.execPath, ["scripts/dev-server.js"], {
+    cwd: root,
+    env: { ...process.env, PORT: String(PORT) },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
   return new Promise((resolve, reject) => {
-    const t0 = Date.now();
-    const tick = () => {
-      if (pred()) return resolve(true);
-      if (Date.now() - t0 > timeout) return reject(new Error('timeout waiting for condition'));
-      setTimeout(tick, 25);
-    };
-    tick();
+    const timer = setTimeout(
+      () => reject(new Error("сервер не стартовал")),
+      10000,
+    );
+    server.stdout.on("data", (chunk) => {
+      if (String(chunk).includes(String(PORT))) {
+        clearTimeout(timer);
+        resolve(server);
+      }
+    });
+    server.on("error", reject);
   });
 }
 
-const click = (node) => node.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
-const key = (k) => doc.dispatchEvent(new win.KeyboardEvent('keydown', { key: k, bubbles: true }));
+async function run() {
+  const server = await startServer();
+  const browser = await puppeteer.launch({
+    executablePath: CHROME,
+    headless: "new",
+    args: ["--no-sandbox", "--mute-audio"],
+  });
 
-const results = [];
-const check = (name, ok, extra = '') => results.push({ name, ok: !!ok, extra: String(extra) });
+  const page = await browser.newPage();
+  const jsErrors = [];
+  page.on("pageerror", (error) => jsErrors.push(error.message));
 
-(async () => {
-  await waitFor(() => win.SONGS && doc.querySelectorAll('.row').length > 0);
-  const N = win.SONGS.length;
+  try {
+    await page.goto(BASE, { waitUntil: "load" });
+    await page.waitForSelector(".row");
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: "load" });
+    await page.waitForSelector(".row");
 
-  /* ---------- каталог ---------- */
-  check('каталог загружен', N > 150, N);
-  check('все песни в списке', doc.querySelectorAll('.row').length === N, doc.querySelectorAll('.row').length);
-
-  const row = doc.querySelector('.row');
-  check('исполнитель сверху, название снизу',
-    !!row.querySelector('.row-artist') &&
-    !!row.querySelector('.row-title') &&
-    row.querySelector('.row-artist').compareDocumentPosition(row.querySelector('.row-title')) &
-      win.Node.DOCUMENT_POSITION_FOLLOWING);
-
-  const arts = [...doc.querySelectorAll('.row-artist')].map((n) => n.textContent);
-  const sorted = [...arts].sort((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'base' }));
-  check('сортировка по исполнителю', JSON.stringify(arts) === JSON.stringify(sorted));
-
-  /* ---------- выбор без запуска видео ---------- */
-  const target = [...doc.querySelectorAll('.row')].find((r) => r.dataset.id === 'AJFHUiFof9M');
-  click(target);
-  await waitFor(() => doc.getElementById('nowTitle').textContent === 'Знаешь ли ты');
-
-  check('песня выбрана', doc.getElementById('nowTitle').textContent === 'Знаешь ли ты');
-  check('исполнитель показан', doc.getElementById('nowArtist').textContent === 'МакSим');
-  check('строка подсвечена', doc.querySelector('.row.active')?.dataset.id === 'AJFHUiFof9M');
-
-  const frame = doc.getElementById('ytFrame');
-  check('клик по песне не запускает видео',
-    frame.hidden === true && !frame.getAttribute('src'), frame.src);
-  check('кнопка осталась «Петь»', doc.getElementById('btnPlayLabel').textContent === 'Петь');
-  check('подсказка предлагает запуск',
-    /Нажмите ▶/.test(doc.getElementById('emptySub').textContent));
-  check('выбор песни запоминается', win.localStorage.getItem('karaoke.last.v1') === 'AJFHUiFof9M');
-
-  /* ---------- запуск по явному действию ---------- */
-  key('Enter');
-  await waitFor(() => !doc.getElementById('ytFrame').hidden);
-  check('плеер открылся на странице', frame.hidden === false && frame.src.includes('AJFHUiFof9M'), frame.src);
-  check('автозапуск включён', frame.src.includes('autoplay=1'));
-  check('кнопка стала «Пауза»', doc.getElementById('btnPlayLabel').textContent === 'Пауза');
-
-  /* ---------- текст ---------- */
-  const lyr = doc.getElementById('lyricsBody');
-  check('куплет показан', /Куплет/.test(lyr.textContent));
-  check('припев показан', /Припев/.test(lyr.textContent));
-  check('верный текст куплета', /Я так привыкла жить одним тобой/.test(lyr.textContent));
-  check('верный текст припева', /Вдоль ночных дорог/.test(lyr.textContent));
-
-  /* ---------- поиск ---------- */
-  const search = doc.getElementById('search');
-  search.value = 'максим';
-  search.dispatchEvent(new win.Event('input', { bubbles: true }));
-  check('поиск находит МакSим (латиница/кириллица)', doc.querySelectorAll('.row').length === 9, doc.querySelectorAll('.row').length);
-
-  search.value = 'земфира';
-  search.dispatchEvent(new win.Event('input', { bubbles: true }));
-  check('поиск по исполнителю', doc.querySelectorAll('.row').length === 5, doc.querySelectorAll('.row').length);
-
-  search.value = 'батарейка';
-  search.dispatchEvent(new win.Event('input', { bubbles: true }));
-  check('поиск по названию', doc.querySelectorAll('.row').length === 1, doc.querySelectorAll('.row').length);
-
-  search.value = 'рок';
-  search.dispatchEvent(new win.Event('input', { bubbles: true }));
-  check('поиск по жанру', doc.querySelectorAll('.row').length > 20, doc.querySelectorAll('.row').length);
-
-  click(doc.getElementById('searchClear'));
-  check('очистка поиска', doc.querySelectorAll('.row').length === N);
-
-  /* ---------- фильтры ---------- */
-  const rockChip = [...doc.querySelectorAll('.chip')].find((c) => c.dataset.cat === 'Русский рок');
-  click(rockChip);
-  const rockN = doc.querySelectorAll('.row').length;
-  check('фильтр по категории',
-    rockN === win.SONGS.filter((s) => s.category === 'Русский рок').length, rockN);
-  check('чип выбран', doc.querySelector('.chip[data-cat="Русский рок"]').getAttribute('aria-selected') === 'true');
-
-  click(doc.querySelector('.chip[data-cat="Русский рок"]'));
-  check('повторный клик снимает фильтр', doc.querySelectorAll('.row').length === N);
-
-  const genre = doc.getElementById('genreFilter');
-  genre.value = 'Хард-рок';
-  genre.dispatchEvent(new win.Event('change', { bubbles: true }));
-  check('фильтр по жанру',
-    doc.querySelectorAll('.row').length === win.SONGS.filter((s) => s.genre === 'Хард-рок').length,
-    doc.querySelectorAll('.row').length);
-
-  const lang = doc.getElementById('langFilter');
-  lang.value = 'en';
-  lang.dispatchEvent(new win.Event('change', { bubbles: true }));
-  check('фильтр по языку', doc.querySelectorAll('.row').length === 0);
-
-  click(doc.getElementById('resetFilters'));
-  check('сброс фильтров', doc.querySelectorAll('.row').length === N);
-
-  /* ---------- сортировки ---------- */
-  const sort = doc.getElementById('sort');
-  for (const [mode, label] of [['title', 'названию'], ['genre', 'жанру'], ['category', 'категории']]) {
-    sort.value = mode;
-    sort.dispatchEvent(new win.Event('change', { bubbles: true }));
-    check(`сортировка по ${label}`, doc.querySelectorAll('.group-head').length > 3, doc.querySelectorAll('.group-head').length);
+    await steps(page);
+  } finally {
+    await browser.close();
+    server.kill();
   }
-  sort.value = 'artist';
-  sort.dispatchEvent(new win.Event('change', { bubbles: true }));
 
-  /* ---------- избранное ---------- */
-  click(doc.getElementById('btnFav'));
-  check('добавлено в избранное', doc.getElementById('btnFav').classList.contains('on'));
-  check('избранное сохраняется', JSON.parse(win.localStorage.getItem('karaoke.favs.v1') || '[]').includes('AJFHUiFof9M'));
+  report(jsErrors);
+}
 
-  click(doc.querySelector('.chip-fav'));
-  check('показ только избранного', doc.querySelectorAll('.row').length === 1, doc.querySelectorAll('.row').length);
-  click(doc.querySelector('.chip-fav'));
-  check('выход из избранного', doc.querySelectorAll('.row').length === N);
+/* ── помощники внутри страницы ─────────────────────────────── */
 
-  /* ---------- большой текст ---------- */
-  click(doc.getElementById('btnFullLyrics'));
-  check('текст на весь экран', doc.getElementById('lyricsOverlay').hidden === false);
-  check('в оверлее есть слова', /Знаешь ли ты/.test(doc.getElementById('overlayInner').textContent));
-  click(doc.getElementById('overlayClose'));
-  check('оверлей закрылся', doc.getElementById('lyricsOverlay').hidden === true);
+const helpers = `
+  window.T = {
+    rows: () => [...document.querySelectorAll('.row')],
+    row: (id) => document.querySelector('.row[data-id="' + id + '"]'),
+    click: (node) => node.dispatchEvent(new MouseEvent('click', { bubbles: true })),
+    dblclick: (node) => node.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })),
+    key: (key) => document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true })),
+    typeSearch: (value) => {
+      const input = document.getElementById('search');
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    },
+    change: (id, value) => {
+      const control = document.getElementById(id);
+      control.value = value;
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+    },
+  };
+`;
 
-  const before = win.getComputedStyle(doc.documentElement).getPropertyValue('--lyrics-scale').trim();
-  click(doc.getElementById('fontPlus'));
-  const after = win.getComputedStyle(doc.documentElement).getPropertyValue('--lyrics-scale').trim();
-  check('размер текста меняется', before !== after, `${before} → ${after}`);
+async function steps(page) {
+  await page.evaluate(helpers);
+  await page.evaluate(async () => {
+    window.__catalog = (await import("/data/catalog.js")).SONGS;
+  });
 
-  /* ---------- клавиатура ---------- */
-  const prev = doc.querySelector('.row.active')?.dataset.id;
-  key('ArrowDown');
-  check('стрелка вниз переключает песню', doc.querySelector('.row.active')?.dataset.id !== prev);
-  check('стрелка не запускает видео',
-    doc.getElementById('ytFrame').hidden === true && !doc.getElementById('ytFrame').getAttribute('src'));
+  /* ── каталог ── */
+  const total = await page.evaluate(() => window.__catalog.length);
+  check("каталог загружен", total > 150, total);
+  check(
+    "все песни в списке",
+    (await page.evaluate(() => T.rows().length)) === total,
+    await page.evaluate(() => T.rows().length),
+  );
 
-  key('/');
-  check('слэш фокусирует поиск', doc.activeElement === doc.getElementById('search'));
+  const rowLayout = await page.evaluate(() => {
+    const row = T.rows()[0];
+    const artist = row.querySelector(".row-artist");
+    const title = row.querySelector(".row-title");
+    return (
+      !!artist &&
+      !!title &&
+      !!(
+        artist.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING
+      )
+    );
+  });
+  check("исполнитель сверху, название снизу", rowLayout);
 
-  doc.activeElement.blur();
-  key('Escape');
-  check('Esc останавливает', doc.getElementById('ytFrame').hidden === true);
-  check('кнопка снова «Петь»', doc.getElementById('btnPlayLabel').textContent === 'Петь');
+  const artistSorted = await page.evaluate(() => {
+    const artists = T.rows().map(
+      (r) => r.querySelector(".row-artist").textContent,
+    );
+    const sorted = [...artists].sort((a, b) =>
+      a.localeCompare(b, "ru", { sensitivity: "base" }),
+    );
+    return JSON.stringify(artists) === JSON.stringify(sorted);
+  });
+  check("сортировка по исполнителю", artistSorted);
 
-  /* ---------- каждая песня открывается ---------- */
-  let broken = 0;
-  for (const s of win.SONGS) {
-    const r = [...doc.querySelectorAll('.row')].find((x) => x.dataset.id === s.id);
-    if (!r) { broken++; continue; }
-    click(r);
-    if (!doc.getElementById('lyricsBody').textContent.trim()) broken++;
-    if (doc.getElementById('nowTitle').textContent !== s.title) broken++;
-  }
-  check('все песни открываются и показывают текст', broken === 0, broken);
+  /* ── выбор без запуска видео ── */
+  await page.evaluate(() => T.click(T.row("AJFHUiFof9M")));
+  await page.waitForFunction(
+    () => document.getElementById("nowTitle").textContent === "Знаешь ли ты",
+  );
 
-  /* ---------- видео без встраивания ---------- */
-  const noembedSongs = win.SONGS.filter((s) => s.noembed);
-  check('есть песни без встраивания', noembedSongs.length > 0, noembedSongs.length);
+  check(
+    "песня выбрана",
+    (await page.$eval("#nowTitle", (n) => n.textContent)) === "Знаешь ли ты",
+  );
+  check(
+    "исполнитель показан",
+    (await page.$eval("#nowArtist", (n) => n.textContent)) === "МакSим",
+  );
+  check(
+    "строка подсвечена",
+    (await page.$eval(".row.active", (n) => n.dataset.id)) === "AJFHUiFof9M",
+  );
 
-  const opened = [];
-  win.open = (url) => {
-    opened.push(url);
-    return null;
+  const idleFrame = await frameState(page);
+  check("клик по песне не запускает видео", idleFrame.hidden && !idleFrame.src);
+  check(
+    "кнопка осталась «Петь»",
+    (await page.$eval("#btnPlayLabel", (n) => n.textContent)) === "Петь",
+  );
+  check(
+    "подсказка предлагает запуск",
+    /Нажмите ▶/.test(await page.$eval("#emptySub", (n) => n.textContent)),
+  );
+  check(
+    "выбор песни запоминается",
+    (await page.evaluate(() => localStorage.getItem("karaoke.last.v1"))) ===
+      "AJFHUiFof9M",
+  );
+
+  /* ── запуск по явному действию ── */
+  await page.evaluate(() => T.key("Enter"));
+  await page.waitForFunction(() => !document.getElementById("ytFrame").hidden);
+
+  const playingFrame = await frameState(page);
+  check(
+    "плеер открылся на странице",
+    !playingFrame.hidden && playingFrame.src.includes("AJFHUiFof9M"),
+  );
+  check("автозапуск включён", playingFrame.src.includes("autoplay=1"));
+  check(
+    "кнопка стала «Пауза»",
+    (await page.$eval("#btnPlayLabel", (n) => n.textContent)) === "Пауза",
+  );
+
+  /* ── текст ── */
+  const lyricsText = await page.$eval("#lyricsBody", (n) => n.textContent);
+  check("куплет показан", /Куплет/.test(lyricsText));
+  check("припев показан", /Припев/.test(lyricsText));
+  check(
+    "верный текст куплета",
+    /Я так привыкла жить одним тобой/.test(lyricsText),
+  );
+  check("верный текст припева", /Вдоль ночных дорог/.test(lyricsText));
+
+  /* ── поиск ── */
+  const searchCount = async (query) => {
+    await page.evaluate((q) => T.typeSearch(q), query);
+    return page.evaluate(() => T.rows().length);
   };
 
-  const blockedSong = noembedSongs[0];
-  const blockedRow = [...doc.querySelectorAll('.row')].find((r) => r.dataset.id === blockedSong.id);
-  click(blockedRow);
-  // selection alone must not try to build a player for a video that cannot be embedded
-  check('выбор такой песни не грузит видео', doc.getElementById('ytFrame').hidden === true);
-  click(doc.getElementById('bigPlay'));
-  await waitFor(() => doc.getElementById('videoBlocked').hidden === false);
+  check(
+    "поиск находит МакSим (латиница/кириллица)",
+    (await searchCount("максим")) === 9,
+  );
+  check("поиск по исполнителю", (await searchCount("земфира")) === 5);
+  check("поиск по названию", (await searchCount("батарейка")) === 1);
+  check("поиск по жанру", (await searchCount("рок")) > 20);
 
-  check('вместо чёрного плеера — понятное сообщение',
-    doc.getElementById('videoBlocked').hidden === false);
-  check('iframe не грузит запрещённое видео',
-    doc.getElementById('ytFrame').hidden === true && !doc.getElementById('ytFrame').getAttribute('src'));
-  check('объяснено, почему не играет',
-    /только на YouTube/.test(doc.getElementById('videoBlocked').textContent));
-  check('вкладку не открываем сами', opened.length === 0, opened.join(' '));
+  await page.evaluate(() => T.click(document.getElementById("searchClear")));
+  check(
+    "очистка поиска",
+    (await page.evaluate(() => T.rows().length)) === total,
+  );
 
-  click(doc.getElementById('openYtBtn'));
-  check('кнопка «Смотреть на YouTube» ведёт на видео',
-    opened.length === 1 && opened[0].includes(blockedSong.id), opened.join(' '));
+  /* ── фильтры ── */
+  await page.evaluate(() =>
+    T.click(
+      [...document.querySelectorAll(".chip")].find(
+        (c) => c.dataset.cat === "Русский рок",
+      ),
+    ),
+  );
+  const rockCount = await page.evaluate(
+    () => window.__catalog.filter((s) => s.category === "Русский рок").length,
+  );
+  check(
+    "фильтр по категории",
+    (await page.evaluate(() => T.rows().length)) === rockCount,
+  );
+  check(
+    "чип выбран",
+    (await page.$eval('.chip[data-cat="Русский рок"]', (n) =>
+      n.getAttribute("aria-selected"),
+    )) === "true",
+  );
 
-  check('в списке помечены такие песни',
-    doc.querySelector(`.row[data-id="${blockedSong.id}"] .row-ext`) !== null);
+  await page.evaluate(() =>
+    T.click(document.querySelector('.chip[data-cat="Русский рок"]')),
+  );
+  check(
+    "повторный клик снимает фильтр",
+    (await page.evaluate(() => T.rows().length)) === total,
+  );
+
+  await page.evaluate(() => T.change("genreFilter", "Хард-рок"));
+  const hardRock = await page.evaluate(
+    () => window.__catalog.filter((s) => s.genre === "Хард-рок").length,
+  );
+  check(
+    "фильтр по жанру",
+    (await page.evaluate(() => T.rows().length)) === hardRock,
+  );
+
+  await page.evaluate(() => T.change("langFilter", "en"));
+  check("фильтр по языку", (await page.evaluate(() => T.rows().length)) === 0);
+
+  await page.evaluate(() => T.click(document.getElementById("resetFilters")));
+  check(
+    "сброс фильтров",
+    (await page.evaluate(() => T.rows().length)) === total,
+  );
+
+  /* ── сортировки ── */
+  for (const [mode, label] of [
+    ["title", "названию"],
+    ["genre", "жанру"],
+    ["category", "категории"],
+  ]) {
+    await page.evaluate((value) => T.change("sort", value), mode);
+    const groups = await page.evaluate(
+      () => document.querySelectorAll(".group-head").length,
+    );
+    check(`сортировка по ${label}`, groups > 3, groups);
+  }
+  await page.evaluate(() => T.change("sort", "artist"));
+
+  /* ── избранное ── */
+  await page.evaluate(() => T.click(document.getElementById("btnFav")));
+  check(
+    "добавлено в избранное",
+    await page.evaluate(() =>
+      document.getElementById("btnFav").classList.contains("on"),
+    ),
+  );
+  check(
+    "избранное сохраняется",
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("karaoke.favs.v1") || "[]").includes(
+        "AJFHUiFof9M",
+      ),
+    ),
+  );
+
+  await page.evaluate(() => T.click(document.querySelector(".chip-fav")));
+  check(
+    "показ только избранного",
+    (await page.evaluate(() => T.rows().length)) === 1,
+  );
+  await page.evaluate(() => T.click(document.querySelector(".chip-fav")));
+  check(
+    "выход из избранного",
+    (await page.evaluate(() => T.rows().length)) === total,
+  );
+
+  /* ── большой текст ── */
+  await page.evaluate(() => T.click(document.getElementById("btnFullLyrics")));
+  check(
+    "текст на весь экран",
+    await page.evaluate(
+      () => document.getElementById("lyricsOverlay").hidden === false,
+    ),
+  );
+  check(
+    "в оверлее есть слова",
+    /Знаешь ли ты/.test(
+      await page.$eval("#overlayInner", (n) => n.textContent),
+    ),
+  );
+  await page.evaluate(() => T.click(document.getElementById("overlayClose")));
+  check(
+    "оверлей закрылся",
+    await page.evaluate(
+      () => document.getElementById("lyricsOverlay").hidden === true,
+    ),
+  );
+
+  const before = await page.evaluate(() =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--lyrics-scale")
+      .trim(),
+  );
+  await page.evaluate(() => T.click(document.getElementById("fontPlus")));
+  const after = await page.evaluate(() =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--lyrics-scale")
+      .trim(),
+  );
+  check("размер текста меняется", before !== after, `${before} → ${after}`);
+
+  /* ── клавиатура ── */
+  const beforeArrow = await page.$eval(".row.active", (n) => n.dataset.id);
+  await page.evaluate(() => T.key("ArrowDown"));
+  check(
+    "стрелка вниз переключает песню",
+    (await page.$eval(".row.active", (n) => n.dataset.id)) !== beforeArrow,
+  );
+  const afterArrow = await frameState(page);
+  check("стрелка не запускает видео", afterArrow.hidden && !afterArrow.src);
+
+  await page.evaluate(() => T.key("/"));
+  check(
+    "слэш фокусирует поиск",
+    await page.evaluate(
+      () => document.activeElement === document.getElementById("search"),
+    ),
+  );
+
+  await page.evaluate(() => document.activeElement.blur());
+  await page.evaluate(() => T.key("Escape"));
+  check(
+    "Esc останавливает",
+    await page.evaluate(
+      () => document.getElementById("ytFrame").hidden === true,
+    ),
+  );
+  check(
+    "кнопка снова «Петь»",
+    (await page.$eval("#btnPlayLabel", (n) => n.textContent)) === "Петь",
+  );
+
+  /* ── каждая песня открывается ── */
+  const broken = await page.evaluate(() => {
+    let failures = 0;
+    for (const song of window.__catalog) {
+      const row = T.row(song.id);
+      if (!row) {
+        failures++;
+        continue;
+      }
+      T.click(row);
+      if (!document.getElementById("lyricsBody").textContent.trim()) failures++;
+      if (document.getElementById("nowTitle").textContent !== song.title)
+        failures++;
+    }
+    return failures;
+  });
+  check("все песни открываются и показывают текст", broken === 0, broken);
+
+  /* ── видео без встраивания ── */
+  const noembed = await page.evaluate(() =>
+    window.__catalog
+      .filter((s) => s.noembed)
+      .map((s) => ({ id: s.id, title: s.title })),
+  );
+  check("есть песни без встраивания", noembed.length > 0, noembed.length);
+
+  await page.evaluate(() => {
+    window.opened = [];
+    window.open = (url) => {
+      window.opened.push(url);
+      return null;
+    };
+  });
+
+  await page.evaluate((id) => T.click(T.row(id)), noembed[0].id);
+  check(
+    "выбор такой песни не грузит видео",
+    (await frameState(page)).hidden === true,
+  );
+
+  await page.evaluate(() => T.click(document.getElementById("bigPlay")));
+  await page.waitForFunction(
+    () => document.getElementById("videoBlocked").hidden === false,
+  );
+
+  check(
+    "вместо чёрного плеера — понятное сообщение",
+    await page.evaluate(
+      () => document.getElementById("videoBlocked").hidden === false,
+    ),
+  );
+  const blockedFrame = await frameState(page);
+  check(
+    "iframe не грузит запрещённое видео",
+    blockedFrame.hidden && !blockedFrame.src,
+  );
+  check(
+    "объяснено, почему не играет",
+    /только на YouTube/.test(
+      await page.$eval("#videoBlocked", (n) => n.textContent),
+    ),
+  );
+  check(
+    "вкладку не открываем сами",
+    (await page.evaluate(() => window.opened.length)) === 0,
+  );
+
+  await page.evaluate(() => T.click(document.getElementById("openYtBtn")));
+  const opened = await page.evaluate(() => window.opened);
+  check(
+    "кнопка «Смотреть на YouTube» ведёт на видео",
+    opened.length === 1 && opened[0].includes(noembed[0].id),
+    opened.join(" "),
+  );
+  check(
+    "в списке помечены такие песни",
+    await page.evaluate(
+      (id) => !!T.row(id)?.querySelector(".row-ext"),
+      noembed[0].id,
+    ),
+  );
 
   // обычная песня по-прежнему играет в рамке
-  const normalSong = win.SONGS.find((s) => !s.noembed);
-  click([...doc.querySelectorAll('.row')].find((r) => r.dataset.id === normalSong.id));
-  await waitFor(() => doc.getElementById('nowTitle').textContent === normalSong.title);
-  click(doc.getElementById('bigPlay'));
-  await waitFor(() => doc.getElementById('ytFrame').hidden === false);
-  check('обычная песня играет в плеере',
-    doc.getElementById('videoBlocked').hidden === true &&
-      doc.getElementById('ytFrame').hidden === false &&
-      doc.getElementById('ytFrame').src.includes(normalSong.id));
+  const normalId = await page.evaluate(
+    () => window.__catalog.find((s) => !s.noembed).id,
+  );
+  await page.evaluate((id) => T.click(T.row(id)), normalId);
+  await page.evaluate(() => T.click(document.getElementById("bigPlay")));
+  await page.waitForFunction(() => !document.getElementById("ytFrame").hidden);
 
-  /* ---------- двойной клик всё ещё запускает ---------- */
-  const dblSong = win.SONGS.find((s) => !s.noembed && s.id !== normalSong.id);
-  const dblRow = [...doc.querySelectorAll('.row')].find((r) => r.dataset.id === dblSong.id);
-  click(dblRow);
-  check('первый клик только выбирает',
-    doc.getElementById('ytFrame').hidden === true || !doc.getElementById('ytFrame').src.includes(dblSong.id));
-  dblRow.dispatchEvent(new win.MouseEvent('dblclick', { bubbles: true }));
-  await waitFor(() => doc.getElementById('nowTitle').textContent === dblSong.title &&
-    doc.getElementById('ytFrame').hidden === false);
-  check('двойной клик запускает видео',
-    doc.getElementById('ytFrame').src.includes(dblSong.id) && doc.getElementById('btnPlayLabel').textContent === 'Пауза');
+  const normalFrame = await frameState(page);
+  check(
+    "обычная песня играет в плеере",
+    (await page.evaluate(
+      () => document.getElementById("videoBlocked").hidden,
+    )) &&
+      !normalFrame.hidden &&
+      normalFrame.src.includes(normalId),
+  );
 
-  /* ---------- отчёт ---------- */
-  console.log('');
+  /* ── двойной клик всё ещё запускает ── */
+  const dblId = await page.evaluate(
+    (skip) => window.__catalog.find((s) => !s.noembed && s.id !== skip).id,
+    normalId,
+  );
+  await page.evaluate((id) => T.click(T.row(id)), dblId);
+  const afterFirstClick = await frameState(page);
+  check(
+    "первый клик только выбирает",
+    afterFirstClick.hidden || !afterFirstClick.src.includes(dblId),
+  );
+
+  await page.evaluate((id) => T.dblclick(T.row(id)), dblId);
+  await page.waitForFunction(() => !document.getElementById("ytFrame").hidden);
+  const dblFrame = await frameState(page);
+  check(
+    "двойной клик запускает видео",
+    dblFrame.src.includes(dblId) &&
+      (await page.$eval("#btnPlayLabel", (n) => n.textContent)) === "Пауза",
+  );
+}
+
+const frameState = (page) =>
+  page.evaluate(() => {
+    const frame = document.getElementById("ytFrame");
+    return { hidden: frame.hidden, src: frame.getAttribute("src") || "" };
+  });
+
+function report(jsErrors) {
+  console.log("");
   let failed = 0;
-  for (const r of results) {
-    if (!r.ok) failed++;
-    console.log(`${r.ok ? '  ok  ' : ' FAIL '} ${r.name}${r.extra ? '  [' + r.extra + ']' : ''}`);
+  for (const result of results) {
+    if (!result.ok) failed++;
+    const extra = result.extra ? `  [${result.extra}]` : "";
+    console.log(`${result.ok ? "  ok  " : " FAIL "} ${result.name}${extra}`);
   }
-  if (errors.length) console.log('\nОшибки JS:\n' + errors.join('\n'));
-  console.log(`\n${results.length - failed}/${results.length} проверок пройдено, ${errors.length} ошибок JS\n`);
-  process.exit(failed || errors.length ? 1 : 0);
-})().catch((e) => {
-  console.error('ТЕСТ УПАЛ:', e.message);
-  console.error(errors);
+
+  if (jsErrors.length) console.log("\nОшибки JS:\n" + jsErrors.join("\n"));
+  console.log(
+    `\n${results.length - failed}/${results.length} проверок пройдено, ${jsErrors.length} ошибок JS\n`,
+  );
+  process.exit(failed || jsErrors.length ? 1 : 0);
+}
+
+run().catch((error) => {
+  console.error("ТЕСТ УПАЛ:", error.message);
   process.exit(1);
 });

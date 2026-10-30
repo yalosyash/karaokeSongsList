@@ -1,40 +1,69 @@
-const puppeteer = require('puppeteer-core');
-const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+/* Скриншоты основных состояний интерфейса — для проверки вёрстки глазами.
 
-(async () => {
+   Нужен запущенный сервер: npm start
+   Запуск: npm run screenshots  → tests/screens/*.png */
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import puppeteer from "puppeteer-core";
+
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const output = path.join(root, "tests", "screens");
+const CHROME =
+  process.env.CHROME_PATH ||
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function main() {
+  fs.mkdirSync(output, { recursive: true });
+
   const browser = await puppeteer.launch({
     executablePath: CHROME,
-    headless: 'new',
-    args: ['--no-sandbox', '--hide-scrollbars'],
+    headless: "new",
+    args: ["--no-sandbox", "--hide-scrollbars", "--mute-audio"],
     defaultViewport: { width: 1500, height: 940, deviceScaleFactor: 1.5 },
   });
-  const page = await browser.newPage();
-  const errs = [];
-  page.on('pageerror', (e) => errs.push(e.message));
 
-  await page.goto('http://localhost:4173/', { waitUntil: 'networkidle2' });
-  await page.waitForSelector('.row');
-  await new Promise((r) => setTimeout(r, 600));
+  try {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
 
-  // playing a song, with the video loaded
-  await page.evaluate(() => {
-    const r = [...document.querySelectorAll('.row')].find((x) => x.dataset.id === 'AJFHUiFof9M');
-    r.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-  });
-  await new Promise((r) => setTimeout(r, 5000));
-  await page.screenshot({ path: 'final-desktop.png' });
+    await page.goto("http://localhost:4173/", { waitUntil: "networkidle2" });
+    await page.waitForSelector(".row");
+    await wait(600);
 
-  // fullscreen lyrics
-  await page.evaluate(() => document.getElementById('btnFullLyrics').click());
-  await new Promise((r) => setTimeout(r, 500));
-  await page.screenshot({ path: 'final-lyrics.png' });
+    // песня выбрана и играет
+    await page.evaluate(() => {
+      document
+        .querySelector('.row[data-id="AJFHUiFof9M"]')
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await wait(4000);
+    await page.screenshot({ path: path.join(output, "desktop.png") });
 
-  // mobile
-  await page.evaluate(() => document.getElementById('overlayClose').click());
-  await page.setViewport({ width: 430, height: 900, deviceScaleFactor: 2 });
-  await new Promise((r) => setTimeout(r, 800));
-  await page.screenshot({ path: 'final-mobile.png' });
+    // текст на весь экран
+    await page.evaluate(() => document.getElementById("btnFullLyrics").click());
+    await wait(500);
+    await page.screenshot({ path: path.join(output, "lyrics.png") });
 
-  console.log('errors:', errs.length ? errs : 'none');
-  await browser.close();
-})();
+    // мобильная раскладка
+    await page.evaluate(() => document.getElementById("overlayClose").click());
+    await page.setViewport({ width: 430, height: 900, deviceScaleFactor: 2 });
+    await wait(800);
+    await page.screenshot({ path: path.join(output, "mobile.png") });
+
+    console.log("ошибки JS:", errors.length ? errors : "нет");
+    console.log("скриншоты:", path.relative(root, output));
+  } finally {
+    await browser.close();
+  }
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
