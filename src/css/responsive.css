@@ -47,9 +47,6 @@
   .chips::-webkit-scrollbar {
     display: none;
   }
-  .more-filters {
-    display: none;
-  }
   .detail-pane {
     overflow: visible;
     /* Keep the theme menu above the player, but below the sticky song list. */

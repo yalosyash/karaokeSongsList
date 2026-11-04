@@ -52,7 +52,7 @@ function handleSearchKeys(event) {
 
 export function wireKeyboard() {
   document.addEventListener("keydown", (event) => {
-    if (event.target.closest?.("#themePicker")) return;
+    if (event.target.closest?.("#themePicker, .select-wrap")) return;
     const active = document.activeElement;
     const inField = isTextField(active);
 

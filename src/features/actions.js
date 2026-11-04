@@ -1,5 +1,6 @@
 /* Общие действия интерфейса, которые вызывают и мышь, и клавиатура. */
 
+import { syncDropdowns } from "./dropdowns.js";
 import { state } from "../core/state.js";
 import { el } from "../core/dom.js";
 import { currentList } from "../catalog/filter.js";
@@ -31,6 +32,7 @@ export function clearFilters() {
   el.search.value = "";
   el.genre.value = "";
   el.lang.value = "";
+  syncDropdowns();
   el.searchClear.hidden = true;
 
   renderChips();

@@ -63,6 +63,7 @@ async function run() {
     await page.waitForSelector(".row");
 
     await themeSteps(page);
+    await dropdownSteps(page);
     await steps(page);
     await themeScrollSteps(page);
     await playerLayoutSteps(page);
@@ -95,6 +96,146 @@ const helpers = `
     },
   };
 `;
+
+async function dropdownSteps(page) {
+  await page.click(".row");
+  const selected = await page.$eval(".row.active", (node) => node.dataset.id);
+  for (const value of ["title", "category", "genre", "artist"]) {
+    await page.click("#sortToggle");
+    await page.click(`#sortMenu [data-value="${value}"]`);
+    check(
+      `меню сортировки выбирает ${value}`,
+      await page.$eval(
+        "#sort",
+        (node, expected) => node.value === expected,
+        value,
+      ),
+    );
+  }
+  await page.focus("#sortToggle");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("End");
+  await page.keyboard.press("Space");
+  check(
+    "Space выбирает сортировку и возвращает фокус",
+    await page.evaluate(
+      () =>
+        document.querySelector("#sort").value === "genre" &&
+        document.activeElement.id === "sortToggle",
+    ),
+  );
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Home");
+  await page.keyboard.press("Enter");
+  check(
+    "клавиатура меню не переключает и не запускает песню",
+    await page.$eval(
+      ".row.active",
+      (node, id) =>
+        node.dataset.id === id && !document.querySelector("#ytFrame iframe"),
+      selected,
+    ),
+  );
+  await page.click("#sortToggle");
+  await page.keyboard.press("Escape");
+  check(
+    "Escape закрывает сортировку и возвращает фокус",
+    await page.evaluate(
+      () =>
+        document.activeElement.id === "sortToggle" &&
+        !document.querySelector("#sortMenu").matches(":popover-open"),
+    ),
+  );
+  await page.click("#sortToggle");
+  await page.keyboard.press("Tab");
+  check(
+    "Tab выходит из сортировки к следующей кнопке",
+    await page.evaluate(
+      () =>
+        document.activeElement.id === "randomBtn" &&
+        !document.querySelector("#sortMenu").matches(":popover-open"),
+    ),
+  );
+  await page.click("#sortToggle");
+  await page.click(".brand");
+  check(
+    "клик снаружи закрывает сортировку",
+    await page.$eval(
+      "#sortToggle",
+      (node) => node.getAttribute("aria-expanded") === "false",
+    ),
+  );
+  for (const width of [1500, 1180, 900, 560, 390, 320]) {
+    await page.setViewport({ width, height: 940 });
+    await page.$eval("#moreFilters", (node) => (node.open = true));
+    for (const id of ["sort", "genreFilter", "langFilter"]) {
+      await page.click(`#${id}Toggle`);
+      check(
+        `меню ${id} доступно при ${width}px`,
+        await page.$eval(`#${id}Menu`, (node) => {
+          const rect = node.getBoundingClientRect();
+          const top = node.querySelector("button").getBoundingClientRect();
+          return (
+            node.matches(":popover-open") &&
+            rect.left >= 0 &&
+            rect.right <= innerWidth &&
+            rect.top >= 0 &&
+            rect.bottom <= innerHeight &&
+            node.contains(document.elementFromPoint(top.x + 8, top.y + 8))
+          );
+        }),
+      );
+      await page.keyboard.press("Escape");
+      const labelPoint = await page.$eval(`#${id}Label`, (node) => {
+        const rect = node.getBoundingClientRect();
+        return { x: rect.x + 4, y: rect.y + rect.height / 2 };
+      });
+      await page.mouse.click(labelPoint.x, labelPoint.y);
+      check(
+        `клик по подписи открывает ${id} при ${width}px`,
+        await page.$eval(`#${id}Menu`, (node) => node.matches(":popover-open")),
+      );
+      await page.mouse.click(labelPoint.x, labelPoint.y);
+      check(
+        `повторный клик по подписи закрывает ${id} при ${width}px`,
+        await page.$eval(`#${id}Menu`, (node) => !node.matches(":popover-open")),
+      );
+      await page.click(`#${id}Toggle`);
+      await page.click(`#${id}Toggle`);
+      check(
+        `повторный клик закрывает ${id} при ${width}px`,
+        await page.$eval(`#${id}Menu`, (node) => !node.matches(":popover-open")),
+      );
+    }
+  }
+  await page.click("#genreFilterToggle");
+  await page.click('#genreFilterMenu [data-value="Хард-рок"]');
+  await page.click("#langFilterToggle");
+  await page.click('#langFilterMenu [data-value="en"]');
+  check(
+    "новые меню применяют жанр и язык",
+    await page.evaluate(
+      () =>
+        document.querySelector("#genreFilter").value === "Хард-рок" &&
+        document.querySelector("#langFilter").value === "en",
+    ),
+  );
+  await page.click("#resetFilters");
+  check(
+    "сброс обновляет подписи и выбранные пункты",
+    await page.evaluate(
+      () =>
+        document.querySelector("#genreFilterToggle").textContent ===
+          "Все жанры" &&
+        document.querySelector("#langFilterToggle").textContent === "Любой" &&
+        document
+          .querySelector('#genreFilterMenu [data-value=""]')
+          .getAttribute("aria-checked") === "true",
+    ),
+  );
+  await page.$eval("#moreFilters", (node) => (node.open = false));
+  await page.setViewport({ width: 1500, height: 940 });
+}
 
 async function themeSteps(page) {
   await page.setViewport({ width: 1500, height: 940 });
@@ -794,7 +935,10 @@ async function themeScrollSteps(page) {
       );
       return box.top < before.top && list.contains(hit);
     });
-    check(`кнопка темы при прокрутке скрыта под списком при ${width}px`, covered);
+    check(
+      `кнопка темы при прокрутке скрыта под списком при ${width}px`,
+      covered,
+    );
     await page.evaluate(() => window.scrollTo(0, 0));
   }
 }

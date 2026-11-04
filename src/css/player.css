@@ -59,6 +59,44 @@
   background: var(--bg-2);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
+
+/* Прокрутка меню, правой панели и всей страницы в мобильной раскладке. */
+.theme-menu::-webkit-scrollbar,
+.detail-pane::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  width: 8px;
+}
+.theme-menu::-webkit-scrollbar-track,
+.detail-pane::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 6px;
+}
+.theme-menu::-webkit-scrollbar-thumb,
+.detail-pane::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb {
+  border: 2px solid var(--bg-2);
+  border-radius: 999px;
+  background: var(--scroll-thumb);
+}
+.theme-menu::-webkit-scrollbar-thumb:hover,
+.detail-pane::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+.theme-menu::-webkit-scrollbar-button,
+.detail-pane::-webkit-scrollbar-button,
+html::-webkit-scrollbar-button {
+  display: none;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .theme-menu,
+  .detail-pane,
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--bg-2);
+  }
+}
 .theme-option {
   display: flex;
   align-items: center;

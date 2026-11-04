@@ -1,6 +1,7 @@
 /* Точка входа: собрать состояние, отрисовать стартовый экран и навесить события.
    Логика — в src/features/*, каталог — в src/catalog/*, утилиты — в src/core/*. */
 
+import { initDropdowns } from "./features/dropdowns.js";
 import { el } from "./core/dom.js";
 import { songWord } from "./core/text.js";
 import { favorites } from "./core/state.js";
@@ -31,6 +32,7 @@ function init() {
   renderChips();
   renderList();
 
+  initDropdowns();
   wireToolbar();
   wireList();
   wireNowBar();
