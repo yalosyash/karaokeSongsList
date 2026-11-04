@@ -1,3 +1,4 @@
+import { hideTooltip } from "./tooltip.js";
 /* Отрисовка списка песен: строки, заголовки групп, счётчик и пустое состояние. */
 
 import { escapeHtml, songWord } from "../core/text.js";
@@ -24,7 +25,7 @@ function rowHtml(song) {
     (song.lang === "en" ? '<span class="row-badge">EN</span>' : "");
 
   const external = song.noembed
-    ? '<span class="row-ext" title="Играет только на YouTube" aria-label="Играет только на YouTube">↗</span>'
+    ? '<span class="row-ext" tabindex="0" aria-label="Играет только на YouTube" data-tooltip="Играет только на YouTube"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12 12 4M4 4h8v8" /></svg></span>'
     : "";
 
   return (
@@ -32,9 +33,12 @@ function rowHtml(song) {
     ` data-id="${song.id}" tabindex="-1" draggable="false">` +
     `<span class="row-artist">${escapeHtml(song.artist)}</span>` +
     `<span class="row-title">${escapeHtml(song.title)}</span>` +
-    `<span class="row-side">${external}` +
+    `<span class="row-side">` +
     `<span class="row-meta">${badges}</span>` +
-    `<button class="row-fav${fav ? " on" : ""}" data-fav="${song.id}" title="В избранное" aria-label="В избранное">${rowIcon("star")}</button>` +
+    `<span class="row-actions">` +
+    `<button class="row-fav${fav ? " on" : ""}" data-fav="${song.id}" aria-label="В избранное">${rowIcon("star")}</button>` +
+    external +
+    `</span>` +
     `</span>` +
     `</div>`
   );
@@ -66,6 +70,7 @@ export function updateResultCount(total) {
 }
 
 export function renderList() {
+  hideTooltip();
   const list = currentList();
 
   let html = "";

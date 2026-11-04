@@ -94,7 +94,6 @@
             <button
               class="search-clear"
               id="searchClear"
-              title="Очистить (Esc)"
               aria-label="Очистить поиск"
               hidden
             >
@@ -112,11 +111,7 @@
                 <option value="genre">По жанру</option>
               </select>
             </div>
-            <button
-              class="ghost-btn"
-              id="randomBtn"
-              title="Случайная песня (R)"
-            >
+            <button class="ghost-btn" id="randomBtn">
               <span class="dice">🎲</span> Случайно
             </button>
           </div>
@@ -340,7 +335,7 @@
               <button
                 class="big-play"
                 id="bigPlay"
-                title="Включить"
+                
                 aria-label="Включить караоке"
                 hidden
               >
@@ -359,7 +354,8 @@
                   class="alt-btn"
                   id="btnAlt"
                   hidden
-                  title="Другая версия караоке"
+                  data-tooltip="Другая версия караоке"
+                  data-tooltip-placement="top"
                 >
                   <svg aria-hidden="true"><use href="#i-swap" /></svg>
                   <span id="altLabel">Версия 2</span>
@@ -373,7 +369,7 @@
                 <button
                   class="icon-btn"
                   id="btnRestart"
-                  title="С начала (0)"
+                  
                   aria-label="Начать с начала"
                   disabled
                 >
@@ -382,7 +378,7 @@
                 <button
                   class="icon-btn"
                   id="btnYt"
-                  title="Открыть на YouTube (Y)"
+                  
                   aria-label="Открыть на YouTube"
                   disabled
                 >
@@ -391,7 +387,7 @@
                 <button
                   class="icon-btn star-btn"
                   id="btnFav"
-                  title="В избранное (S)"
+                  
                   aria-label="В избранное"
                   disabled
                 >
@@ -400,7 +396,7 @@
                 <button
                   class="icon-btn"
                   id="btnStop"
-                  title="Стоп (Esc)"
+                  
                   aria-label="Остановить"
                   disabled
                 >
@@ -422,7 +418,6 @@
                 <button
                   class="icon-btn sm"
                   id="fontMinus"
-                  title="Меньше текст"
                   aria-label="Уменьшить текст"
                 >
                   A−
@@ -430,7 +425,6 @@
                 <button
                   class="icon-btn sm"
                   id="fontPlus"
-                  title="Больше текст"
                   aria-label="Увеличить текст"
                 >
                   A+
@@ -438,7 +432,7 @@
                 <button
                   class="icon-btn sm"
                   id="btnFullLyrics"
-                  title="Текст на весь экран (F)"
+                  
                   aria-label="Текст на весь экран"
                 >
                   <svg aria-hidden="true"><use href="#i-fullscreen" /></svg>

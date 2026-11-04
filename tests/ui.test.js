@@ -63,6 +63,7 @@ async function run() {
     await page.waitForSelector(".row");
 
     await themeSteps(page);
+    await youtubeTooltipSteps(page);
     await dropdownSteps(page);
     await steps(page);
     await themeScrollSteps(page);
@@ -97,7 +98,101 @@ const helpers = `
   };
 `;
 
+async function youtubeTooltipSteps(page) {
+  const icon = await page.$(".row-ext");
+  await icon.evaluate((node) => node.scrollIntoView({ block: "center" }));
+  await icon.hover();
+  check(
+    "подсказка не появляется сразу при наведении",
+    await page.$eval("#app-tooltip", (node) => node.hidden),
+  );
+  await page.waitForFunction(
+    () => !document.getElementById("app-tooltip").hidden,
+  );
+  check(
+    "кастомная подсказка YouTube появляется при наведении",
+    await page.$eval(
+      "#app-tooltip",
+      (node) => !node.hidden && node.getAttribute("role") === "tooltip",
+    ),
+  );
+  check(
+    "у значка нет дублирующей браузерной подсказки",
+    await icon.evaluate((node) => !node.hasAttribute("title")),
+  );
+  for (const theme of [
+    "original",
+    "amethyst",
+    "indigo",
+    "cherry",
+    "emerald",
+    "vinyl",
+    "lavender",
+  ]) {
+    check(
+      `подсказка использует палитру ${theme}`,
+      await page.evaluate((theme) => {
+        document.documentElement.dataset.theme = theme;
+        const tooltip = document.getElementById("app-tooltip");
+        const style = getComputedStyle(tooltip);
+        const probe = document.createElement("div");
+        probe.style.background =
+          theme === "lavender" ? "var(--sidebar-bg)" : "var(--bg-2)";
+        document.body.append(probe);
+        const matches =
+          style.backgroundColor === getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        const rect = tooltip.getBoundingClientRect();
+        return (
+          matches &&
+          rect.left >= 0 &&
+          rect.right <= innerWidth &&
+          rect.top >= 0 &&
+          rect.bottom <= innerHeight
+        );
+      }, theme),
+    );
+  }
+  await page.keyboard.press("Escape");
+  check(
+    "Escape скрывает подсказку",
+    await page.$eval("#app-tooltip", (node) => node.hidden),
+  );
+  await icon.focus();
+  check(
+    "фокус клавиатуры показывает подсказку",
+    await page.$eval("#app-tooltip", (node) => !node.hidden),
+  );
+  await page.evaluate(() =>
+    document.querySelector(".song-list").dispatchEvent(new Event("scroll")),
+  );
+  check(
+    "прокрутка скрывает подсказку",
+    await page.$eval("#app-tooltip", (node) => node.hidden),
+  );
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector(".row");
+}
+
 async function dropdownSteps(page) {
+  const control = await page.$(".row-ext");
+  await control.focus();
+  check(
+    "кнопки переиспользуют общий тултип",
+    await page.$eval(
+      "#app-tooltip",
+      (node) => !node.hidden && node.textContent === "Играет только на YouTube",
+    ),
+  );
+  check(
+    "системные подсказки заменены, название iframe сохранено",
+    await page.evaluate(
+      () =>
+        document.querySelectorAll("[title]:not(iframe)").length === 0 &&
+        !!document.querySelector("iframe[title]"),
+    ),
+  );
+  await page.focus("#search");
   await page.click(".row");
   const selected = await page.$eval(".row.active", (node) => node.dataset.id);
   for (const value of ["title", "category", "genre", "artist"]) {
@@ -198,13 +293,19 @@ async function dropdownSteps(page) {
       await page.mouse.click(labelPoint.x, labelPoint.y);
       check(
         `повторный клик по подписи закрывает ${id} при ${width}px`,
-        await page.$eval(`#${id}Menu`, (node) => !node.matches(":popover-open")),
+        await page.$eval(
+          `#${id}Menu`,
+          (node) => !node.matches(":popover-open"),
+        ),
       );
       await page.click(`#${id}Toggle`);
       await page.click(`#${id}Toggle`);
       check(
         `повторный клик закрывает ${id} при ${width}px`,
-        await page.$eval(`#${id}Menu`, (node) => !node.matches(":popover-open")),
+        await page.$eval(
+          `#${id}Menu`,
+          (node) => !node.matches(":popover-open"),
+        ),
       );
     }
   }
@@ -922,16 +1023,24 @@ async function themeScrollSteps(page) {
   for (const width of [900, 560, 390, 320]) {
     await page.setViewport({ width, height: 720 });
     const independent = await page.evaluate(() => {
-      const pane = document.querySelector('.detail-pane');
-      const list = document.querySelector('.list-pane');
+      const pane = document.querySelector(".detail-pane");
+      const list = document.querySelector(".list-pane");
       const before = list.getBoundingClientRect().top;
       pane.scrollTop = pane.scrollHeight;
       const box = pane.getBoundingClientRect();
-      const ok = pane.scrollTop > 0 && box.top > 0 && box.bottom <= innerHeight + 1 && list.getBoundingClientRect().top === before && document.scrollingElement.scrollHeight <= innerHeight + 1;
+      const ok =
+        pane.scrollTop > 0 &&
+        box.top > 0 &&
+        box.bottom <= innerHeight + 1 &&
+        list.getBoundingClientRect().top === before &&
+        document.scrollingElement.scrollHeight <= innerHeight + 1;
       pane.scrollTop = 0;
       return ok;
     });
-    check('нижняя панель прокручивается независимо при ' + width + 'px', independent);
+    check(
+      "нижняя панель прокручивается независимо при " + width + "px",
+      independent,
+    );
   }
 }
 

@@ -16,7 +16,7 @@ export function renderChips() {
   const counts = countByCategory();
 
   let html =
-    `<button class="chip chip-fav" data-fav-filter="1" aria-selected="${state.favOnly}" title="Только избранные (S)">` +
+    `<button class="chip chip-fav" data-fav-filter="1" aria-selected="${state.favOnly}">` +
     `★ Избранное${favorites.size ? `<span class="chip-n">${favorites.size}</span>` : ""}</button>`;
 
   html += `<button class="chip" data-cat="" aria-selected="${!state.category && !state.favOnly}">Все<span class="chip-n">${SONGS.length}</span></button>`;

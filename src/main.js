@@ -1,3 +1,4 @@
+import { wireTooltips } from "./features/tooltip.js";
 /* Точка входа: собрать состояние, отрисовать стартовый экран и навесить события.
    Логика — в src/features/*, каталог — в src/catalog/*, утилиты — в src/core/*. */
 
@@ -35,6 +36,7 @@ function init() {
   initDropdowns();
   wireToolbar();
   wireList();
+  wireTooltips();
   wireNowBar();
   wireLyricsControls();
   wireKeyboard();

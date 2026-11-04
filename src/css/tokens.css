@@ -2,6 +2,7 @@
 :root {
   --bg: #0a0a11;
   --bg-2: #10101a;
+  --tooltip-bg: var(--bg-2);
   --panel: rgba(255, 255, 255, 0.035);
   --panel-2: rgba(255, 255, 255, 0.06);
   --line: rgba(255, 255, 255, 0.08);
@@ -214,6 +215,7 @@
 }
 
 :root[data-theme="lavender"] {
+  --tooltip-bg: var(--sidebar-bg);
   --card-shadow: 0 16px 40px -24px rgba(62, 40, 85, 0.36);
   color-scheme: light;
   --bg: #e4deec;

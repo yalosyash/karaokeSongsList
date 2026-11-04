@@ -39,7 +39,7 @@ function setVersionLabel(song) {
   el.btnAlt.hidden = versions.length < 2;
   if (versions.length > 1) {
     el.altLabel.textContent = `Версия ${altIndex + 1}/${versions.length}`;
-    el.btnAlt.title = isVideoBlocked(song, versions[altIndex])
+    el.btnAlt.dataset.tooltip = isVideoBlocked(song, versions[altIndex])
       ? "Эта версия играет только на YouTube — переключить на другую"
       : "Другая версия караоке";
   }
@@ -106,8 +106,7 @@ function showIdleHint(song) {
       "Это видео играет только на YouTube — Enter откроет его";
   } else if (isVideoBlocked(song, activeVideoId(song))) {
     // выбранная версия не встраивается — не обещаем, что ▶ её включит
-    el.emptySub.textContent =
-      `Версия ${altIndex + 1} играет только на YouTube — ▶ откроет её там`;
+    el.emptySub.textContent = `Версия ${altIndex + 1} играет только на YouTube — ▶ откроет её там`;
   } else {
     el.emptySub.textContent = "Нажмите ▶ — и начнём петь";
   }

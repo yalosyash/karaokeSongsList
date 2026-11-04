@@ -462,17 +462,19 @@
 .row-meta {
   min-width: 0;
   max-width: 100px;
-  height: 16px;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 5px;
-  overflow: hidden;
+  gap: 2px 5px;
   visibility: hidden;
   pointer-events: none;
 }
 .row-badge {
   flex: none;
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -512,6 +514,19 @@
     color 0.15s,
     background 0.15s;
 }
+.row-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.row:has(.row-ext) {
+  padding-right: 169px;
+}
+.row:has(.row-ext) .row-side {
+  max-width: 154px;
+}
 /* small mark for songs that only play on YouTube (embedding disabled by the author) */
 .row-ext {
   display: grid;
@@ -526,6 +541,36 @@
   font-weight: 700;
   color: var(--warning-text);
   flex: none;
+}
+.row-ext svg {
+  display: block;
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.row-ext:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.app-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 7px 10px;
+  border: 1px solid var(--selected-border);
+  border-radius: 8px;
+  background: var(--tooltip-bg);
+  color: var(--text);
+  box-shadow: var(--card-shadow);
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 600;
 }
 .row-fav svg {
   display: block;
