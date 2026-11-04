@@ -1392,5 +1392,21 @@
     "genre": "Саундтрек",
     "category": "Советская эстрада и кино",
     "lang": "ru"
+  },
+  {
+    "id": "2bTVI7R9scs",
+    "artist": "Ed Sheeran",
+    "title": "I See Fire",
+    "genre": "Фолк-поп",
+    "category": "Зарубежная музыка",
+    "lang": "en"
+  },
+  {
+    "id": "Ik71-eEA_Z8",
+    "artist": "Елена Темникова",
+    "title": "Импульсы",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
   }
 ]
