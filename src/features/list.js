@@ -28,8 +28,10 @@ function rowHtml(song) {
   return (
     `<div class="${classes}" role="option" aria-selected="${active}"` +
     ` data-id="${song.id}" tabindex="-1" draggable="false">` +
+    `<span class="row-heading">` +
     `<span class="row-artist">${escapeHtml(song.artist)}</span>` +
     `<span class="row-title">${escapeHtml(song.title)}</span>` +
+    `</span>` +
     `<span class="row-side">` +
     `<span class="row-meta">${badges}</span>` +
     `<span class="row-actions">` +

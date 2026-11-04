@@ -63,6 +63,7 @@ async function run() {
     await page.waitForSelector(".row");
 
     await themeSteps(page);
+    await rowWidthSteps(page);
     await youtubeTooltipSteps(page);
     await dropdownSteps(page);
     await steps(page);
@@ -97,6 +98,97 @@ const helpers = `
     },
   };
 `;
+
+async function rowWidthSteps(page) {
+  for (const width of [1280, 1024, 390, 320]) {
+    await page.setViewport({ width, height: 720 });
+    for (const selector of [".row:not(:has(.row-ext))", ".row:has(.row-ext)"]) {
+      const row = await page.$(selector);
+      await page.mouse.move(0, 0);
+      const before = await row.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        return {
+          height: box.height,
+          title: node.querySelector(".row-title").getBoundingClientRect().width,
+          artist: node.querySelector(".row-artist").getBoundingClientRect().width,
+          titleTop: node.querySelector(".row-title").getBoundingClientRect().top - box.top,
+          artistTop: node.querySelector(".row-artist").getBoundingClientRect().top - box.top,
+          width: box.width,
+        };
+      });
+      await row.hover();
+      const valid = await row.evaluate((node, before) => {
+        const title = node.querySelector(".row-title").getBoundingClientRect();
+        const artist = node.querySelector(".row-artist").getBoundingClientRect();
+        const meta = node.querySelector(".row-meta").getBoundingClientRect();
+        const icon = node.querySelector(".row-ext")?.getBoundingClientRect();
+        return (
+          before.title >= before.width - 60 &&
+          Math.abs(before.artist - before.title) < 1 &&
+          Math.abs(node.getBoundingClientRect().height - before.height) < 1 &&
+          Math.abs(title.top - node.getBoundingClientRect().top - before.titleTop) < 1 &&
+          Math.abs(artist.top - node.getBoundingClientRect().top - before.artistTop) < 1 &&
+          title.right <= meta.left &&
+          meta.top >= node.getBoundingClientRect().top &&
+          meta.bottom <= node.getBoundingClientRect().bottom &&
+          [...node.querySelectorAll(".row-badge")].every((badge) =>
+            badge.scrollWidth <= badge.clientWidth + 1 &&
+            getComputedStyle(badge).textOverflow !== "ellipsis"
+          ) &&
+          meta.width > 0 && artist.right <= meta.left &&
+          (!icon || (title.right <= icon.left && meta.right <= icon.left))
+        );
+      }, before);
+      check(`ширина текста и метки без пересечений: ${selector}, ${width}px`, valid);
+    }
+    const failures = await page.evaluate(() => {
+      const failures = [];
+      for (const row of document.querySelectorAll(".row")) {
+        document.activeElement?.blur();
+        const height = row.getBoundingClientRect().height;
+        row.focus({ preventScroll: true });
+        const box = row.getBoundingClientRect();
+        const title = row.querySelector(".row-title").getBoundingClientRect();
+        const meta = row.querySelector(".row-meta").getBoundingClientRect();
+        if (Math.abs(box.height - height) > 1 || title.width < 40 ||
+            title.right > meta.left || meta.bottom > box.bottom ||
+            meta.top < box.top) failures.push(row.dataset.id);
+      }
+      document.activeElement?.blur();
+      return failures;
+    });
+    check(`все карточки сохраняют высоту и место для текста при ${width}px`,
+      failures.length === 0, failures.join(", "));
+  }
+  const wrapping = await page.evaluate(() => {
+    const row = document.querySelector(".row");
+    row.focus({ preventScroll: true });
+    const meta = row.querySelector(".row-meta");
+    const original = meta.innerHTML;
+    const height = row.getBoundingClientRect().height;
+    const layout = (labels) => {
+      meta.replaceChildren(...labels.map((label) => {
+        const badge = document.createElement("span");
+        badge.className = "row-badge";
+        badge.textContent = label;
+        return badge;
+      }));
+      return [...meta.children].map((badge) => badge.getBoundingClientRect());
+    };
+    const short = layout(["Поп", "Рок", "EN"]);
+    const singleLine = short.every((box) => box.top === short[0].top);
+    const long = layout(["Зарубежное", "Электроника", "EN"]);
+    const wrapped = long[1].top > long[0].top && long[2].top === long[1].top;
+    const stable = row.getBoundingClientRect().height === height;
+    meta.innerHTML = original;
+    row.blur();
+    return singleLine && wrapped && stable;
+  });
+  check("теги идут подряд и переносятся только при нехватке ширины", wrapping);
+  await page.setViewport({ width: 800, height: 600 });
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector(".row");
+}
 
 async function youtubeTooltipSteps(page) {
   const icon = await page.$(".row-ext");
