@@ -194,6 +194,23 @@ async function dropdownSteps(page) {
   );
   await page.focus("#search");
   await page.click(".row");
+  // Клик прокручивает список к первой строке. Дожидаемся остановки:
+  // запоздалый scroll иначе закроет только что открытое меню сортировки.
+  await page.waitForFunction(
+    () => {
+      const list = document.querySelector(".song-list");
+      const position = `${list.scrollLeft}:${list.scrollTop}`;
+      const now = performance.now();
+      const previous = window.__testListScroll;
+      if (!previous || previous.position !== position) {
+        window.__testListScroll = { position, since: now };
+        return false;
+      }
+      return now - previous.since >= 100;
+    },
+    { polling: "raf", timeout: 5000 },
+  );
+  await page.evaluate(() => delete window.__testListScroll);
   const selected = await page.$eval(".row.active", (node) => node.dataset.id);
   for (const value of ["title", "category", "genre", "artist"]) {
     await page.click("#sortToggle");
