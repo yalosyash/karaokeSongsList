@@ -41,6 +41,7 @@ body {
     Roboto,
     sans-serif;
   font-size: 15px;
+  cursor: default;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -64,6 +65,11 @@ select {
 }
 button {
   cursor: pointer;
+}
+input,
+textarea,
+[contenteditable="true"] {
+  cursor: text;
 }
 svg {
   fill: currentColor;

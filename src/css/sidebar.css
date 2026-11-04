@@ -416,7 +416,7 @@
   text-align: left;
   border: 1px solid transparent;
   border-radius: 13px;
-  padding: 9px 11px 9px 13px;
+  padding: 9px 145px 9px 13px;
   background: transparent;
   position: relative;
   transition:
@@ -460,26 +460,30 @@
   text-overflow: ellipsis;
 }
 .row-meta {
-  display: none;
+  min-width: 0;
+  max-width: 100px;
+  height: 16px;
+  display: flex;
+  align-items: center;
   gap: 5px;
-  margin-top: 3px;
-  flex-wrap: wrap;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
 }
 .row-badge {
+  flex: none;
+  white-space: nowrap;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--muted-2);
   border: 1px solid var(--line);
   border-radius: 5px;
-  padding: 1px 5px;
-  line-height: 1.5;
+  padding: 0 5px;
+  line-height: 1.3;
 }
-.row:hover .row-artist {
-  color: var(--muted);
-}
-.row:hover .row-meta {
-  display: flex;
+.row:is(:hover, :focus-visible) .row-meta {
+  visibility: visible;
 }
 
 .row-side {
@@ -487,12 +491,15 @@
   right: 9px;
   top: 50%;
   transform: translateY(-50%);
+  max-width: 130px;
   display: flex;
   align-items: center;
   gap: 4px;
 }
 .row-fav {
-  display: none;
+  display: grid;
+  visibility: hidden;
+  flex: none;
   place-items: center;
   width: 26px;
   height: 26px;
@@ -528,31 +535,15 @@
   color: var(--text);
 }
 .row-fav.on {
-  display: grid;
+  visibility: visible;
   color: var(--favorite-on);
 }
-.row:hover .row-fav {
-  display: grid;
+.row:is(:hover, :focus-visible) .row-fav,
+.row-fav:focus-visible {
+  visibility: visible;
 }
 .row-fav.on svg {
   fill: var(--favorite-on);
-}
-
-.row-play {
-  display: none;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--hover-bg);
-  color: var(--text);
-}
-.row-play svg {
-  width: 11px;
-  height: 11px;
-}
-.row:hover .row-play {
-  display: grid;
 }
 
 .row.active {
@@ -574,20 +565,6 @@
   background: var(--grad);
   color: var(--on-accent);
 }
-.row.active .row-play {
-  display: grid;
-  background: var(--grad);
-  color: var(--on-accent);
-}
-.row.playing .row-play svg path {
-  animation: pulsePlay 1.2s ease-in-out infinite;
-}
-@keyframes pulsePlay {
-  50% {
-    opacity: 0.35;
-  }
-}
-
 .list-empty {
   flex: 1;
   display: flex;

@@ -32,10 +32,9 @@ function rowHtml(song) {
     ` data-id="${song.id}" tabindex="-1" draggable="false">` +
     `<span class="row-artist">${escapeHtml(song.artist)}</span>` +
     `<span class="row-title">${escapeHtml(song.title)}</span>` +
-    `<span class="row-meta">${badges}</span>` +
     `<span class="row-side">${external}` +
+    `<span class="row-meta">${badges}</span>` +
     `<button class="row-fav${fav ? " on" : ""}" data-fav="${song.id}" title="В избранное" aria-label="В избранное">${rowIcon("star")}</button>` +
-    `<span class="row-play">${rowIcon("play")}</span>` +
     `</span>` +
     `</div>`
   );
