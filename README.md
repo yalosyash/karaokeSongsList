@@ -10,7 +10,8 @@
 
 ```
 https://www.youtube.com/watch?v=tOGTcsley1U
-tOGTcsley1U - это id
+
+"tOGTcsley1U" - это id
 ```
 
 **1. Добавьте запись** в конец `content/songs.json`:
