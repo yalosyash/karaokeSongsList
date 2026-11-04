@@ -27,7 +27,6 @@ export function clearFilters() {
   state.category = "";
   state.genre = "";
   state.lang = "";
-  state.favOnly = false;
 
   el.search.value = "";
   el.genre.value = "";

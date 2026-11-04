@@ -5,7 +5,6 @@ import { wireTooltips } from "./features/tooltip.js";
 import { initDropdowns } from "./features/dropdowns.js";
 import { el } from "./core/dom.js";
 import { songWord } from "./core/text.js";
-import { favorites } from "./core/state.js";
 import { loadLastSong, restoreSettings } from "./core/storage.js";
 import { initLyricScale } from "./core/settings.js";
 import { registerServiceWorker } from "./core/offline.js";
@@ -25,7 +24,7 @@ function restoreLastSong() {
 }
 
 function init() {
-  restoreSettings((id) => byId.has(id));
+  restoreSettings();
   initLyricScale();
 
   el.total.textContent = `${SONGS.length} ${songWord(SONGS.length)}`;
@@ -42,9 +41,6 @@ function init() {
   wireKeyboard();
 
   restoreLastSong();
-
-  // избранное из прошлой сессии должно быть видно в чипе сразу
-  if (favorites.size) renderChips();
 
   registerServiceWorker();
 }

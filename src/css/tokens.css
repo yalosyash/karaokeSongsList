@@ -44,9 +44,6 @@
   --card-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
   --accent-rgb: 176, 108, 255;
   --accent-2-rgb: 255, 95, 162;
-  --favorite: #e0b34a;
-  --favorite-hover: #ffd166;
-  --favorite-on: #ffcb45;
   --warning-text: #ff9a9a;
   --radius: 18px;
   --list-w: 400px;
@@ -248,8 +245,5 @@
   --pressed-bg: rgba(62, 40, 85, 0.13);
   --scroll-thumb: rgba(62, 40, 85, 0.25);
   --scroll-thumb-hover: rgba(62, 40, 85, 0.4);
-  --favorite: #856015;
-  --favorite-hover: #75500a;
-  --favorite-on: #856015;
   --warning-text: #a33247;
 }

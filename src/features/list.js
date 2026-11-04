@@ -2,16 +2,13 @@ import { hideTooltip } from "./tooltip.js";
 /* Отрисовка списка песен: строки, заголовки групп, счётчик и пустое состояние. */
 
 import { escapeHtml, songWord } from "../core/text.js";
-import { favorites, state } from "../core/state.js";
+import { state } from "../core/state.js";
 import { el } from "../core/dom.js";
 import { CATEGORY_LABELS, SONGS } from "../catalog/catalog.js";
 import { currentList, hasActiveFilters } from "../catalog/filter.js";
 
-const rowIcon = (id) => `<svg aria-hidden="true"><use href="#i-${id}" /></svg>`;
-
 function rowHtml(song) {
   const active = song.id === state.currentId;
-  const fav = favorites.has(song.id);
   const classes =
     "row" +
     (active ? " active" : "") +
@@ -36,7 +33,6 @@ function rowHtml(song) {
     `<span class="row-side">` +
     `<span class="row-meta">${badges}</span>` +
     `<span class="row-actions">` +
-    `<button class="row-fav${fav ? " on" : ""}" data-fav="${song.id}" aria-label="В избранное">${rowIcon("star")}</button>` +
     external +
     `</span>` +
     `</span>` +

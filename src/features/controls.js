@@ -2,7 +2,6 @@
 
 import { state } from "../core/state.js";
 import { el } from "../core/dom.js";
-import { toggleFavorite } from "./favorites.js";
 import { handleChipClick } from "./filters.js";
 import { renderList } from "./list.js";
 import {
@@ -55,13 +54,6 @@ export function wireToolbar() {
 
 export function wireList() {
   el.list.addEventListener("click", (event) => {
-    const favButton = event.target.closest(".row-fav");
-    if (favButton) {
-      event.stopPropagation();
-      toggleFavorite(favButton.dataset.fav);
-      return;
-    }
-
     const row = event.target.closest(".row");
     if (!row) return;
 
@@ -93,6 +85,5 @@ export function wireNowBar() {
   el.openYtBtn.addEventListener("click", openCurrentOnYouTube);
   el.btnAlt.addEventListener("click", nextVersion);
   el.blockedAltBtn.addEventListener("click", nextVersion);
-  el.btnFav.addEventListener("click", () => toggleFavorite(state.currentId));
   el.btnStop.addEventListener("click", stop);
 }

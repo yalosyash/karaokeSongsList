@@ -1,7 +1,7 @@
 /* Чипы категорий и выпадающие списки жанра/языка. */
 
 import { escapeHtml } from "../core/text.js";
-import { favorites, state } from "../core/state.js";
+import { state } from "../core/state.js";
 import { el } from "../core/dom.js";
 import {
   CATEGORY_LABELS,
@@ -15,11 +15,7 @@ import { renderList } from "./list.js";
 export function renderChips() {
   const counts = countByCategory();
 
-  let html =
-    `<button class="chip chip-fav" data-fav-filter="1" aria-selected="${state.favOnly}">` +
-    `★ Избранное${favorites.size ? `<span class="chip-n">${favorites.size}</span>` : ""}</button>`;
-
-  html += `<button class="chip" data-cat="" aria-selected="${!state.category && !state.favOnly}">Все<span class="chip-n">${SONGS.length}</span></button>`;
+  let html = `<button class="chip" data-cat="" aria-selected="${!state.category}">Все<span class="chip-n">${SONGS.length}</span></button>`;
 
   for (const category of CATEGORY_ORDER) {
     const count = counts.get(category);
@@ -48,19 +44,13 @@ export function renderGenreOptions() {
       .join("");
 }
 
-/** Клик по чипу: «Избранное» — отдельный переключатель, остальные — категории. */
+/** Клик по чипу переключает категорию. */
 export function handleChipClick(event) {
   const chip = event.target.closest(".chip");
   if (!chip) return;
 
-  if (chip.dataset.favFilter) {
-    state.favOnly = !state.favOnly;
-    state.category = "";
-  } else {
-    const category = chip.dataset.cat || "";
-    state.category = state.category === category ? "" : category;
-    state.favOnly = false;
-  }
+  const category = chip.dataset.cat || "";
+  state.category = state.category === category ? "" : category;
 
   renderChips();
   renderList();

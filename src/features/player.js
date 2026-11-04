@@ -1,6 +1,6 @@
 /* Управление плеером: выбор песни, запуск, пауза, стоп, перезапуск, версии. */
 
-import { favorites, state } from "../core/state.js";
+import { state } from "../core/state.js";
 import { saveLastSong } from "../core/storage.js";
 import { el } from "../core/dom.js";
 import { escapeHtml } from "../core/text.js";
@@ -136,12 +136,10 @@ export function selectSong(id, options = {}) {
     el.btnPlay,
     el.btnRestart,
     el.btnYt,
-    el.btnFav,
     el.btnStop,
   ]) {
     button.disabled = false;
   }
-  el.btnFav.classList.toggle("on", favorites.has(id));
 
   if (changed) {
     altIndex = 0;

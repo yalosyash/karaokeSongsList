@@ -3,7 +3,6 @@
 
 import { state } from "../core/state.js";
 import { el } from "../core/dom.js";
-import { toggleFavorite } from "./favorites.js";
 import { toggleOverlay } from "./lyrics.js";
 import {
   openCurrentOnYouTube,
@@ -105,9 +104,6 @@ export function wireKeyboard() {
     }
 
     switch (event.key.toLowerCase()) {
-      case "s":
-        toggleFavorite(state.currentId);
-        return;
       case "f":
         toggleOverlay();
         return;

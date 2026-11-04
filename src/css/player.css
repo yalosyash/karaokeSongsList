@@ -530,14 +530,6 @@ html::-webkit-scrollbar-button {
   width: 13px;
   height: 13px;
 }
-.star-btn.on {
-  color: var(--favorite-on);
-  border-color: rgba(255, 203, 69, 0.4);
-  background: rgba(255, 203, 69, 0.12);
-}
-.star-btn.on svg {
-  fill: var(--favorite-on);
-}
 
 .alt-btn {
   display: inline-flex;

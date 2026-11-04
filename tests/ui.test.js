@@ -395,16 +395,16 @@ async function themeSteps(page) {
       (node) => getComputedStyle(node).colorScheme === "light",
     ),
   );
-  await page.hover("#btnFav");
+  await page.hover("#btnYt");
   await page.waitForFunction(
     () =>
-      getComputedStyle(document.getElementById("btnFav")).color ===
+      getComputedStyle(document.getElementById("btnYt")).color ===
       "rgb(44, 35, 56)",
   );
   check(
     "иконки при наведении в светлой теме остаются тёмными",
     await page.$eval(
-      "#btnFav",
+      "#btnYt",
       (node) => getComputedStyle(node).color === "rgb(44, 35, 56)",
     ),
   );
@@ -709,34 +709,6 @@ async function steps(page) {
     check(`сортировка по ${label}`, groups > 3, groups);
   }
   await page.evaluate(() => T.change("sort", "artist"));
-
-  /* ── избранное ── */
-  await page.evaluate(() => T.click(document.getElementById("btnFav")));
-  check(
-    "добавлено в избранное",
-    await page.evaluate(() =>
-      document.getElementById("btnFav").classList.contains("on"),
-    ),
-  );
-  check(
-    "избранное сохраняется",
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("karaoke.favs.v1") || "[]").includes(
-        "AJFHUiFof9M",
-      ),
-    ),
-  );
-
-  await page.evaluate(() => T.click(document.querySelector(".chip-fav")));
-  check(
-    "показ только избранного",
-    (await page.evaluate(() => T.rows().length)) === 1,
-  );
-  await page.evaluate(() => T.click(document.querySelector(".chip-fav")));
-  check(
-    "выход из избранного",
-    (await page.evaluate(() => T.rows().length)) === total,
-  );
 
   /* ── большой текст ── */
   await page.evaluate(() => T.click(document.getElementById("btnFullLyrics")));

@@ -38,7 +38,6 @@ export const el = {
   btnPlayLabel: $("btnPlayLabel"),
   btnRestart: $("btnRestart"),
   btnYt: $("btnYt"),
-  btnFav: $("btnFav"),
   btnStop: $("btnStop"),
   btnAlt: $("btnAlt"),
   altLabel: $("altLabel"),

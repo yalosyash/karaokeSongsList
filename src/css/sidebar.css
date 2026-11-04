@@ -293,24 +293,6 @@
   margin-left: 4px;
   font-size: 11px;
 }
-.chip-fav {
-  color: var(--favorite);
-  border-color: rgba(255, 203, 69, 0.3);
-}
-.chip-fav:hover {
-  color: var(--favorite-hover);
-  border-color: rgba(255, 203, 69, 0.5);
-  background: rgba(255, 203, 69, 0.08);
-}
-.chip-fav[aria-selected="true"] {
-  background: linear-gradient(115deg, #f0b429 0%, #ff8a3d 100%);
-  color: #241500;
-  border-color: transparent;
-  box-shadow: 0 4px 16px -4px rgba(240, 180, 41, 0.6);
-}
-.chip-fav[aria-selected="true"] .chip-n {
-  opacity: 0.7;
-}
 
 /* ── extra filters ───────────────────────────────────────── */
 .more-filters {
@@ -498,22 +480,7 @@
   align-items: center;
   gap: 4px;
 }
-.row-fav {
-  display: grid;
-  visibility: hidden;
-  flex: none;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--muted-2);
-  transition:
-    color 0.15s,
-    background 0.15s;
-}
+
 .row-actions {
   display: flex;
   flex: none;
@@ -572,28 +539,6 @@
   line-height: 1.35;
   font-weight: 600;
 }
-.row-fav svg {
-  display: block;
-  width: 14px;
-  height: 14px;
-  /* Оптический центр звезды чуть ниже центра её SVG-рамки. */
-  transform: translateY(-1px);
-}
-.row-fav:hover {
-  background: var(--hover-bg);
-  color: var(--text);
-}
-.row-fav.on {
-  visibility: visible;
-  color: var(--favorite-on);
-}
-.row:is(:hover, :focus-visible) .row-fav,
-.row-fav:focus-visible {
-  visibility: visible;
-}
-.row-fav.on svg {
-  fill: var(--favorite-on);
-}
 
 .row.active {
   background: var(--selected-bg);
@@ -635,21 +580,4 @@
 
 :root[data-theme="lavender"] .chip .chip-n {
   opacity: 0.85;
-}
-
-:root[data-theme="lavender"] .chip-fav {
-  color: #62420a;
-  border-color: #a88238;
-  background: #f2e4c5;
-}
-:root[data-theme="lavender"] .chip-fav:hover {
-  color: #4b3005;
-  border-color: #87631f;
-  background: #ead5a6;
-}
-:root[data-theme="lavender"] .chip-fav[aria-selected="true"] {
-  color: #362300;
-  border-color: #87631f;
-  background: #dfb45b;
-  box-shadow: none;
 }
