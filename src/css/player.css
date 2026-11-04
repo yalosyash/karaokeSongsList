@@ -120,9 +120,7 @@
 
 .video-shell {
   position: relative;
-  /* keep a true 16:9 box: shrink width when height is the limit, so the
-     video fills the frame instead of getting letterboxed */
-  width: min(100%, calc(min(46vh, 440px) * 16 / 9));
+  width: 100%;
   aspect-ratio: 16 / 9;
   margin: 0 auto;
   background: var(--video-bg);
@@ -193,22 +191,22 @@
 }
 
 /* video whose owner disabled embedding: the in-page player cannot show it */
-.video-shell.is-blocked {
-  width: 100%;
-  aspect-ratio: auto;
-  height: min(46vh, 440px);
-}
 .video-blocked {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   gap: 8px;
   text-align: center;
   padding: 20px;
   background: var(--video-bg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.video-blocked > * {
+  flex-shrink: 0;
 }
 .vb-glow {
   position: absolute;

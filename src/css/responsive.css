@@ -52,18 +52,12 @@
   }
   .detail-pane {
     overflow: visible;
+    /* Keep the theme menu above the player, but below the sticky song list. */
+    isolation: isolate;
   }
   .detail-inner {
     padding: 8px 12px 10px;
     gap: 12px;
-  }
-  .video-shell {
-    width: 100%;
-  }
-  .video-shell.is-blocked {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
   }
   .now {
     flex-wrap: wrap;

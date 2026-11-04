@@ -64,6 +64,8 @@ async function run() {
 
     await themeSteps(page);
     await steps(page);
+    await themeScrollSteps(page);
+    await playerLayoutSteps(page);
   } finally {
     await browser.close();
     server.kill();
@@ -773,6 +775,83 @@ async function steps(page) {
     dblFrame.src.includes(dblId) &&
       (await page.$eval("#btnPlayLabel", (n) => n.textContent)) === "Пауза",
   );
+}
+
+async function themeScrollSteps(page) {
+  for (const width of [900, 560, 390, 320]) {
+    await page.setViewport({ width, height: 720 });
+    const covered = await page.evaluate(() => {
+      window.scrollTo(0, 0);
+      const toggle = document.getElementById("themeToggle");
+      const list = document.querySelector(".list-pane");
+      const before = toggle.getBoundingClientRect();
+      // Move the button into the middle of the sticky list.
+      window.scrollTo(0, before.top - list.clientHeight / 2);
+      const box = toggle.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2,
+      );
+      return box.top < before.top && list.contains(hit);
+    });
+    check(`кнопка темы при прокрутке скрыта под списком при ${width}px`, covered);
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
+}
+
+async function playerLayoutSteps(page) {
+  for (const width of [1500, 1181, 1180, 1024, 901, 900, 561, 560, 390, 320]) {
+    await page.setViewport({ width, height: 720 });
+    for (const state of ["empty", "playing", "blocked"]) {
+      const layout = await page.evaluate((state) => {
+        const shell = document.getElementById("videoShell");
+        shell.classList.toggle("is-blocked", state === "blocked");
+        document.getElementById("videoEmpty").hidden = state !== "empty";
+        document.getElementById("ytFrame").hidden = state !== "playing";
+        document.getElementById("videoBlocked").hidden = state !== "blocked";
+        // Longest blocked state: explanation and both action buttons.
+        document.getElementById("blockedAltBtn").hidden = false;
+        const box = shell.getBoundingClientRect();
+        const card = shell.parentElement;
+        const cardStyle = getComputedStyle(card);
+        const innerWidth =
+          card.clientWidth -
+          parseFloat(cardStyle.paddingLeft) -
+          parseFloat(cardStyle.paddingRight);
+        const frame = document
+          .getElementById("ytFrame")
+          .getBoundingClientRect();
+        const blocked = document.getElementById("videoBlocked");
+        let actionsReachable = true;
+        if (state === "blocked") {
+          blocked.scrollTop = 0;
+          const first = blocked
+            .querySelector(".vb-ico")
+            .getBoundingClientRect();
+          const area = blocked.getBoundingClientRect();
+          blocked.scrollTop = blocked.scrollHeight;
+          const last = document
+            .getElementById("blockedAltBtn")
+            .getBoundingClientRect();
+          actionsReachable =
+            first.top >= area.top && last.bottom <= area.bottom + 1;
+        }
+        return (
+          Math.abs(box.width - innerWidth) < 1 &&
+          Math.abs(box.height - (box.width * 9) / 16) < 1 &&
+          (state !== "playing" ||
+            (Math.abs(frame.width - box.width) < 1 &&
+              Math.abs(frame.height - box.height) < 1)) &&
+          document.documentElement.scrollWidth <= window.innerWidth &&
+          actionsReachable
+        );
+      }, state);
+      check(
+        `плеер ${state}: полная ширина, 16:9, элементы доступны при ${width}px`,
+        layout,
+      );
+    }
+  }
 }
 
 const frameState = (page) =>
