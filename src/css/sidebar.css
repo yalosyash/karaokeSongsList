@@ -376,7 +376,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 4px 10px 18px;
+  padding: 0 10px 18px;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
 }
@@ -388,7 +388,9 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 13px 8px 5px;
+  /* Cover the list's side gutters as rows scroll underneath. */
+  margin-inline: -10px;
+  padding: 13px 18px 5px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
