@@ -921,25 +921,17 @@ async function steps(page) {
 async function themeScrollSteps(page) {
   for (const width of [900, 560, 390, 320]) {
     await page.setViewport({ width, height: 720 });
-    const covered = await page.evaluate(() => {
-      window.scrollTo(0, 0);
-      const toggle = document.getElementById("themeToggle");
-      const list = document.querySelector(".list-pane");
-      const before = toggle.getBoundingClientRect();
-      // Move the button into the middle of the sticky list.
-      window.scrollTo(0, before.top - list.clientHeight / 2);
-      const box = toggle.getBoundingClientRect();
-      const hit = document.elementFromPoint(
-        box.left + box.width / 2,
-        box.top + box.height / 2,
-      );
-      return box.top < before.top && list.contains(hit);
+    const independent = await page.evaluate(() => {
+      const pane = document.querySelector('.detail-pane');
+      const list = document.querySelector('.list-pane');
+      const before = list.getBoundingClientRect().top;
+      pane.scrollTop = pane.scrollHeight;
+      const box = pane.getBoundingClientRect();
+      const ok = pane.scrollTop > 0 && box.top > 0 && box.bottom <= innerHeight + 1 && list.getBoundingClientRect().top === before && document.scrollingElement.scrollHeight <= innerHeight + 1;
+      pane.scrollTop = 0;
+      return ok;
     });
-    check(
-      `кнопка темы при прокрутке скрыта под списком при ${width}px`,
-      covered,
-    );
-    await page.evaluate(() => window.scrollTo(0, 0));
+    check('нижняя панель прокручивается независимо при ' + width + 'px', independent);
   }
 }
 

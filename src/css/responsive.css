@@ -12,20 +12,19 @@
 
 @media (max-width: 900px) {
   body {
-    overflow: auto;
+    overflow: hidden;
   }
   .app {
     grid-template-columns: minmax(0, 1fr);
-    height: auto;
-    min-height: 100dvh;
+    grid-template-rows: minmax(0, 62fr) minmax(0, 38fr);
+    height: 100dvh;
   }
   .list-pane {
     border-right: 0;
     border-bottom: 1px solid var(--line);
-    height: 62dvh;
+    height: auto;
     min-width: 0;
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 10;
     background: var(--sidebar-bg);
   }
@@ -48,8 +47,8 @@
     display: none;
   }
   .detail-pane {
-    overflow: visible;
-    /* Keep the theme menu above the player, but below the sticky song list. */
+    overflow-y: auto;
+    /* Изолировать содержимое прокручиваемой нижней панели. */
     isolation: isolate;
   }
   .detail-inner {
@@ -83,9 +82,6 @@
     height: 38px;
   }
   .hotkeys {
-    display: none;
-  }
-  .brand-count {
     display: none;
   }
 }
