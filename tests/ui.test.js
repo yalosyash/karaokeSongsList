@@ -62,6 +62,7 @@ async function run() {
     await page.reload({ waitUntil: "load" });
     await page.waitForSelector(".row");
 
+    await themeSteps(page);
     await steps(page);
   } finally {
     await browser.close();
@@ -92,6 +93,141 @@ const helpers = `
     },
   };
 `;
+
+async function themeSteps(page) {
+  await page.setViewport({ width: 1500, height: 940 });
+  const currentTheme = () => page.$eval("html", (node) => node.dataset.theme);
+  const chooseTheme = async (theme) => {
+    await page.click("#themeToggle");
+    await page.click('[data-theme-option="' + theme + '"]');
+  };
+  check(
+    "по умолчанию оригинальная тема",
+    (await currentTheme()) === "original",
+  );
+  await page.click(".row");
+  const selected = await page.$eval(".row.active", (node) => node.dataset.id);
+  for (const [theme, background] of [
+    ["amethyst", "rgb(23, 19, 34)"],
+    ["indigo", "rgb(17, 24, 39)"],
+    ["cherry", "rgb(28, 18, 27)"],
+    ["emerald", "rgb(16, 29, 26)"],
+    ["vinyl", "rgb(33, 25, 20)"],
+    ["lavender", "rgb(228, 222, 236)"],
+    ["original", "rgb(10, 10, 17)"],
+  ]) {
+    await chooseTheme(theme);
+    check(
+      `палитра ${theme} применяется`,
+      (await currentTheme()) === theme &&
+        (await page.$eval(
+          "body",
+          (node) => getComputedStyle(node).backgroundColor,
+        )) === background,
+    );
+  }
+  await chooseTheme("lavender");
+  check(
+    "светлая тема включает светлые системные элементы",
+    await page.$eval(
+      "html",
+      (node) => getComputedStyle(node).colorScheme === "light",
+    ),
+  );
+  await page.hover("#btnFav");
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.getElementById("btnFav")).color ===
+      "rgb(44, 35, 56)",
+  );
+  check(
+    "иконки при наведении в светлой теме остаются тёмными",
+    await page.$eval(
+      "#btnFav",
+      (node) => getComputedStyle(node).color === "rgb(44, 35, 56)",
+    ),
+  );
+  await chooseTheme("original");
+  await page.focus("#themeToggle");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  check(
+    "выбор темы с клавиатуры не переключает и не запускает песню",
+    (await page.$eval(".row.active", (node) => node.dataset.id)) === selected &&
+      (await page.$eval("#ytFrame", (node) => node.hidden)),
+  );
+  await page.click("#themeToggle");
+  await page.keyboard.press("Escape");
+  check(
+    "Escape закрывает меню и возвращает фокус",
+    await page.evaluate(
+      () =>
+        document.getElementById("themeMenu").hidden &&
+        document.activeElement.id === "themeToggle",
+    ),
+  );
+  await page.click("#themeToggle");
+  await page.click("#nowTitle");
+  check(
+    "клик снаружи закрывает меню",
+    await page.$eval("#themeMenu", (node) => node.hidden),
+  );
+  await page.focus("#themeToggle");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Tab");
+  check(
+    "Tab выходит из меню без ловушки фокуса",
+    await page.evaluate(
+      () =>
+        document.getElementById("themeMenu").hidden &&
+        !document
+          .getElementById("themePicker")
+          .contains(document.activeElement),
+    ),
+  );
+  await chooseTheme("lavender");
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector(".row");
+  check(
+    "тема сохраняется после перезагрузки",
+    (await currentTheme()) === "lavender" &&
+      (await page.$eval('[data-theme-option="lavender"]', (node) =>
+        node.getAttribute("aria-checked"),
+      )) === "true",
+  );
+  await page.evaluate(() =>
+    localStorage.setItem("karaoke.theme.v1", "unknown"),
+  );
+  await page.reload({ waitUntil: "load" });
+  check(
+    "неизвестная тема возвращает оригинальную",
+    (await currentTheme()) === "original",
+  );
+
+  const blocked = await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(window, "localStorage", {
+      get() {
+        throw new Error("Storage blocked");
+      },
+    });
+  });
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector(".row");
+  await chooseTheme("indigo");
+  check(
+    "темы работают без доступа к хранилищу",
+    (await currentTheme()) === "indigo",
+  );
+  await page.removeScriptToEvaluateOnNewDocument(blocked.identifier);
+  await page.evaluate(() => {
+    // В этой странице хранилище ещё заблокировано; очистим его после перезагрузки.
+    document.activeElement.blur();
+  });
+  await page.reload({ waitUntil: "load" });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector(".row");
+}
 
 async function steps(page) {
   await page.evaluate(helpers);
@@ -197,8 +333,8 @@ async function steps(page) {
   const entitySongs = await page.evaluate(
     () =>
       window.__catalog.filter((s) =>
-        [...(s.verse || []), ...(s.chorus || [])].some(
-          (line) => /&#?\w+;|[\u2028\u2029]/.test(line),
+        [...(s.verse || []), ...(s.chorus || [])].some((line) =>
+          /&#?\w+;|[\u2028\u2029]/.test(line),
         ),
       ).length,
   );
@@ -208,11 +344,15 @@ async function steps(page) {
     const song = window.__catalog.find((s) => s.title === "Кабан");
     return song ? song.verse[song.verse.length - 1] : "";
   });
-  check("строка «Кабан» без мусора", kaban === "Кабан — мне бы солнца и чуток желудей (Хей)", kaban);
+  check(
+    "строка «Кабан» без мусора",
+    kaban === "Кабан — мне бы солнца и чуток желудей (Хей)",
+    kaban,
+  );
 
   await page.evaluate(() => {
-    const row = [...T.rows()].find((r) =>
-      r.querySelector(".row-title").textContent === "Кабан",
+    const row = [...T.rows()].find(
+      (r) => r.querySelector(".row-title").textContent === "Кабан",
     );
     if (row) T.click(row);
   });
@@ -490,11 +630,13 @@ async function steps(page) {
     const song = window.__catalog.find(
       (s) => s.alt?.length && s.blocked?.includes(s.alt[0]),
     );
-    return song
-      ? { id: song.id, alt: song.alt[0], title: song.title }
-      : null;
+    return song ? { id: song.id, alt: song.alt[0], title: song.title } : null;
   });
-  check("есть песня с заблокированной второй версией", !!versioned, versioned?.title);
+  check(
+    "есть песня с заблокированной второй версией",
+    !!versioned,
+    versioned?.title,
+  );
 
   if (versioned) {
     // выбор версии 2 до запуска не должен теряться при нажатии ▶
@@ -506,7 +648,9 @@ async function steps(page) {
     );
     check(
       "подсказка предупреждает про версию на YouTube",
-      /только на YouTube/.test(await page.$eval("#emptySub", (n) => n.textContent)),
+      /только на YouTube/.test(
+        await page.$eval("#emptySub", (n) => n.textContent),
+      ),
     );
 
     await page.evaluate(() => {
@@ -532,9 +676,7 @@ async function steps(page) {
     );
     check(
       "объяснение называет версию",
-      /Версия 2\/2/.test(
-        await page.$eval("#blockedSub", (n) => n.textContent),
-      ),
+      /Версия 2\/2/.test(await page.$eval("#blockedSub", (n) => n.textContent)),
     );
     check(
       "объяснение говорит про новую вкладку",
@@ -578,7 +720,9 @@ async function steps(page) {
         )),
     );
 
-    await page.evaluate(() => T.click(document.getElementById("blockedAltBtn")));
+    await page.evaluate(() =>
+      T.click(document.getElementById("blockedAltBtn")),
+    );
     await page.evaluate(() => T.click(document.getElementById("bigPlay")));
     await page.waitForFunction(() =>
       (document.getElementById("ytFrame").getAttribute("src") || "").includes(

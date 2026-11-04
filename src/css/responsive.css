@@ -6,7 +6,7 @@
     --list-w: 350px;
   }
   .detail-inner {
-    padding: 18px 18px 12px;
+    padding: 8px 18px 12px;
   }
 }
 
@@ -27,7 +27,7 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: #0b0b13;
+    background: var(--sidebar-bg);
   }
   /* compact header so more songs fit on a phone */
   .pane-head {
@@ -54,7 +54,7 @@
     overflow: visible;
   }
   .detail-inner {
-    padding: 14px 12px 10px;
+    padding: 8px 12px 10px;
     gap: 12px;
   }
   .video-shell {

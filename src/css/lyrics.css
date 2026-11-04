@@ -2,11 +2,7 @@
 .lyrics-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.042),
-    rgba(255, 255, 255, 0.014)
-  );
+  background: var(--lyrics-card-bg);
   flex: 1;
   min-height: 220px;
   display: flex;
@@ -36,7 +32,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--grad);
-  box-shadow: 0 0 10px rgba(176, 108, 255, 0.9);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.9);
 }
 .lyrics-hint {
   font-size: 11px;
@@ -61,7 +57,7 @@
   padding: 16px 20px 22px;
   font-size: calc(16px * var(--lyrics-scale));
   line-height: 1.62;
-  color: #e6e7ef;
+  color: var(--text);
   transition: font-size 0.15s;
 }
 .lyrics-empty {
@@ -143,7 +139,7 @@ kbd {
   min-width: 16px;
   text-align: center;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--control-bg);
 }
 
 /* ============================================================
@@ -153,7 +149,7 @@ kbd {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(6, 6, 11, 0.93);
+  background: var(--overlay-bg);
   backdrop-filter: blur(22px);
   display: flex;
   align-items: center;
@@ -180,7 +176,7 @@ kbd {
   font-weight: 600;
   letter-spacing: -0.01em;
   text-align: center;
-  color: #f4f4f8;
+  color: var(--text);
   padding: 10px;
 }
 .overlay-inner .lyr-block {
@@ -214,7 +210,7 @@ kbd {
   height: 42px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--panel-2);
   color: var(--muted);
   font-size: 24px;
   line-height: 1;
@@ -223,6 +219,6 @@ kbd {
   transition: all 0.15s;
 }
 .overlay-close:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: var(--pressed-bg);
+  color: var(--text);
 }

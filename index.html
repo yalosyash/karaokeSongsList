@@ -18,6 +18,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script src="src/core/theme.js"></script>
     <link rel="stylesheet" href="src/css/tokens.css" />
     <link rel="stylesheet" href="src/css/base.css" />
     <link rel="stylesheet" href="src/css/sidebar.css" />
@@ -171,6 +172,133 @@
       <!-- ─────────────────────────  ПЛЕЕР + ТЕКСТ  ───────────────────────── -->
       <main class="detail-pane" id="detailPane">
         <div class="detail-inner">
+          <div class="detail-toolbar">
+            <div class="theme-picker" id="themePicker">
+              <button
+                class="theme-toggle"
+                id="themeToggle"
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded="false"
+                aria-controls="themeMenu"
+              >
+                <span aria-hidden="true">◐</span> Тема
+              </button>
+              <div
+                class="theme-menu"
+                id="themeMenu"
+                role="menu"
+                aria-label="Тема оформления"
+                hidden
+              >
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="original"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-original"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Оригинальная</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="amethyst"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-amethyst"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Ночной аметист</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="indigo"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-indigo"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Полночный индиго</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="cherry"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-cherry"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Тёмная вишня</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="emerald"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-emerald"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Тёмный изумруд</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="vinyl"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-vinyl"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Янтарный винил</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+                <button
+                  class="theme-option"
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabindex="-1"
+                  data-theme-option="lavender"
+                >
+                  <span
+                    class="theme-swatch theme-swatch-lavender"
+                    aria-hidden="true"
+                  ></span
+                  ><span>Светлая лаванда</span
+                  ><span class="theme-check" aria-hidden="true">✓</span>
+                </button>
+              </div>
+            </div>
+          </div>
           <section class="player-card">
             <div class="video-shell" id="videoShell">
               <div class="video-empty" id="videoEmpty">

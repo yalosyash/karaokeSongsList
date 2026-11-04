@@ -18,12 +18,12 @@ body {
   background:
     radial-gradient(
       1100px 700px at 12% -10%,
-      rgba(176, 108, 255, 0.16),
+      rgba(var(--accent-rgb), 0.16),
       transparent 60%
     ),
     radial-gradient(
       900px 600px at 105% 8%,
-      rgba(255, 95, 162, 0.13),
+      rgba(var(--accent-2-rgb), 0.13),
       transparent 55%
     ),
     radial-gradient(
@@ -78,7 +78,7 @@ svg {
 }
 
 ::selection {
-  background: rgba(176, 108, 255, 0.35);
+  background: rgba(var(--accent-rgb), 0.35);
 }
 
 /* ── scrollbars ───────────────────────────────────────────── */
@@ -90,13 +90,13 @@ svg {
 .song-list::-webkit-scrollbar-thumb,
 .lyrics-body::-webkit-scrollbar-thumb,
 .overlay-inner::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.11);
+  background: var(--scroll-thumb);
   border-radius: 99px;
   border: 3px solid transparent;
   background-clip: padding-box;
 }
 .song-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scroll-thumb-hover);
   background-clip: padding-box;
 }
 
@@ -107,4 +107,9 @@ svg {
   display: grid;
   grid-template-columns: var(--list-w) minmax(0, 1fr);
   height: 100dvh;
+}
+
+:where(button, input, select, summary, a):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
