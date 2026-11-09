@@ -406,7 +406,8 @@
     "title": "Проститься",
     "genre": "Поп-рок",
     "category": "Русский рок",
-    "lang": "ru"
+    "lang": "ru",
+    "alt": ["Ms-J-JvrON0"]
   },
   {
     "id": "-O6P3Lly228",
@@ -1407,6 +1408,30 @@
     "title": "Импульсы",
     "genre": "Поп",
     "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "8K5bCF935-A",
+    "artist": "Uma2rman",
+    "title": "Прасковья",
+    "genre": "Поп-рок",
+    "category": "Русский рок",
+    "lang": "ru"
+  },
+  {
+    "id": "TPFD9c5POg4",
+    "artist": "Градусы",
+    "title": "Кто ты",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "nLxngvekz1Q",
+    "artist": "Король и Шут",
+    "title": "Защитники",
+    "genre": "Панк-рок",
+    "category": "Русский рок",
     "lang": "ru"
   }
 ]
