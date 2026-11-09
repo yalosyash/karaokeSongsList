@@ -54,7 +54,7 @@ async function run() {
 
   try {
     const page = await browser.newPage();
-    await page.goto("http://localhost:4173/scripts/embed-check.html", {
+    await page.goto("http://localhost:4173/scripts/embed-check/index.html", {
       waitUntil: "load",
     });
     await page.waitForFunction(() => window.API_READY === true, {

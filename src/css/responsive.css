@@ -30,7 +30,7 @@
   }
   /* compact header so more songs fit on a phone */
   .pane-head {
-    padding: 12px 12px 6px;
+    padding: 8px 12px 6px;
     gap: 8px;
   }
   .brand-name {

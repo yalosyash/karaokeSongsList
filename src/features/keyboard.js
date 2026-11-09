@@ -10,7 +10,7 @@ import {
   restart,
   selectSong,
   stop,
-} from "./player.js";
+} from "./player/player.js";
 import { pickRandomSong, stepSelection } from "./actions.js";
 
 const isTextField = (node) =>

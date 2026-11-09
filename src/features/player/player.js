@@ -1,12 +1,12 @@
 /* Управление плеером: выбор песни, запуск, пауза, стоп, перезапуск, версии. */
 
-import { state } from "../core/state.js";
-import { saveLastSong } from "../core/storage.js";
-import { el } from "../core/dom.js";
-import { escapeHtml } from "../core/text.js";
-import { byId } from "../catalog/catalog.js";
-import { renderLyrics } from "./lyrics.js";
-import { updatePlayingRows } from "./list.js";
+import { state } from "../../core/state.js";
+import { saveLastSong } from "../../core/storage.js";
+import { el } from "../../core/dom.js";
+import { escapeHtml } from "../../core/text.js";
+import { byId } from "../../catalog/catalog.js";
+import { renderLyrics } from "../lyrics.js";
+import { updatePlayingRows } from "../list.js";
 import {
   embedUrl,
   isBlocked,
@@ -14,7 +14,7 @@ import {
   openOnYouTube,
   sendPlayerCommand,
   versionsOf,
-} from "./player/youtube.js";
+} from "./youtube.js";
 
 /* Какое видео сейчас лежит в iframe и какая версия выбрана для песни. */
 let loadedId = null;

@@ -1,7 +1,7 @@
 /* Масштаб текста песни: одна CSS-переменная управляет и панелью, и оверлеем. */
 
-import { ui } from "./state.js";
-import { loadLyricScale, saveLyricScale } from "./storage.js";
+import { ui } from "../core/state.js";
+import { loadLyricScale, saveLyricScale } from "../core/storage.js";
 
 const MIN = 0.7;
 const MAX = 2;

@@ -6,7 +6,7 @@ import { initDropdowns } from "./features/dropdowns.js";
 import { el } from "./core/dom.js";
 import { songWord } from "./core/text.js";
 import { loadLastSong, restoreSettings } from "./core/storage.js";
-import { initLyricScale } from "./core/settings.js";
+import { initLyricScale } from "./features/lyric-scale.js";
 import { registerServiceWorker } from "./core/offline.js";
 import { SONGS, byId } from "./catalog/catalog.js";
 import { renderChips, renderGenreOptions } from "./features/filters.js";
@@ -14,7 +14,7 @@ import { renderList, scrollToRow } from "./features/list.js";
 import { wireNowBar, wireList, wireToolbar } from "./features/controls.js";
 import { wireKeyboard } from "./features/keyboard.js";
 import { wireLyricsControls } from "./features/lyrics.js";
-import { selectSong } from "./features/player.js";
+import { selectSong } from "./features/player/player.js";
 
 function restoreLastSong() {
   const lastId = loadLastSong();

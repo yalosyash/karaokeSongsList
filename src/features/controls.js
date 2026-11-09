@@ -12,7 +12,7 @@ import {
   restart,
   selectSong,
   stop,
-} from "./player.js";
+} from "./player/player.js";
 import { clearFilters, pickRandomSong } from "./actions.js";
 
 export function wireToolbar() {

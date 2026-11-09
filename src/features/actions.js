@@ -6,7 +6,7 @@ import { el } from "../core/dom.js";
 import { currentList } from "../catalog/filter.js";
 import { renderChips } from "./filters.js";
 import { renderList, scrollToRow, visibleRows } from "./list.js";
-import { selectSong } from "./player.js";
+import { selectSong } from "./player/player.js";
 
 /** Случайная песня из текущей выборки — только выбирает, видео не запускает. */
 export function pickRandomSong() {

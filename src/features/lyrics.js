@@ -3,7 +3,7 @@
 import { escapeHtml } from "../core/text.js";
 import { el } from "../core/dom.js";
 import { ui } from "../core/state.js";
-import { changeLyricScale } from "../core/settings.js";
+import { changeLyricScale } from "./lyric-scale.js";
 
 function blockHtml(label, className, lines) {
   if (!lines || !lines.length) return "";
