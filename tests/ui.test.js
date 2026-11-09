@@ -9,6 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import puppeteer from "puppeteer-core";
+import { scenarioSteps } from "./scenarios.js";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = 4287;
@@ -69,6 +70,7 @@ async function run() {
     await steps(page);
     await themeScrollSteps(page);
     await playerLayoutSteps(page);
+    await scenarioSteps(browser, BASE, check);
   } finally {
     await browser.close();
     server.kill();
