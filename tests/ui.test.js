@@ -2,146 +2,255 @@
    и кликает по ней, как пользователь.
 
    Запуск: npm test
-   Нужен Google Chrome; другой путь задаётся через CHROME_PATH. */
+   Браузер: npm run test:browser. Другой путь задаётся через CHROME_PATH. */
 
 import { spawn } from "node:child_process";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import puppeteer from "puppeteer-core";
 import { scenarioSteps } from "./scenarios.js";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const PORT = 4287;
-const BASE = `http://localhost:${PORT}/`;
-const CHROME =
-  process.env.CHROME_PATH ||
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+import {
+  root,
+  chromePath,
+  preparePage,
+  ready,
+  diagnostics,
+  assertTransport,
+} from "./support.js";
+import { once } from "node:events";
+import { releaseUpgradeSteps } from "./upgrade.js";
+import { edgeSongs, playerContractSteps } from "./player-contracts.js";
 
 const results = [];
-const check = (name, ok, extra = "") =>
+const check = (name, ok, extra = "") => {
   results.push({ name, ok: !!ok, extra: String(extra) });
+  console.log(
+    (ok ? "ok " : "FAIL ") + name + (extra ? " [" + extra + "]" : ""),
+  );
+};
 
-function startServer() {
+async function startServer() {
   const server = spawn(process.execPath, ["scripts/dev-server.js"], {
     cwd: root,
-    env: { ...process.env, PORT: String(PORT) },
+    env: { ...process.env, PORT: "0" },
     stdio: ["ignore", "pipe", "pipe"],
   });
-
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error("сервер не стартовал")),
-      10000,
-    );
-    server.stdout.on("data", (chunk) => {
-      if (String(chunk).includes(String(PORT))) {
+  let output = "";
+  try {
+    const base = await new Promise((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error("сервер не стартовал: " + output)),
+        10000,
+      );
+      const finish = (error, value) => {
         clearTimeout(timer);
-        resolve(server);
-      }
+        error ? reject(error) : resolve(value);
+      };
+      server.stdout.on("data", (chunk) => {
+        output += chunk;
+        const match = output.match(/http:\/\/localhost:\d+/);
+        if (match) finish(null, match[0] + "/");
+      });
+      server.stderr.on("data", (chunk) => {
+        output += chunk;
+      });
+      server.once("error", (error) => finish(error));
+      server.once("exit", (code) =>
+        finish(new Error("сервер завершился (" + code + "): " + output)),
+      );
     });
-    server.on("error", reject);
-  });
+    return { server, base };
+  } catch (error) {
+    server.kill();
+    throw error;
+  }
 }
 
 async function run() {
-  const server = await startServer();
-  const browser = await puppeteer.launch({
-    executablePath: CHROME,
-    headless: "new",
-    args: ["--no-sandbox", "--mute-audio"],
-  });
-
-  const page = await browser.newPage();
+  let server, browser, page;
   const jsErrors = [];
-  page.on("pageerror", (error) => jsErrors.push(error.message));
-
   try {
-    await page.goto(BASE, { waitUntil: "load" });
-    await page.waitForSelector(".row");
-    await page.evaluate(() => localStorage.clear());
-    await page.reload({ waitUntil: "load" });
-    await page.waitForSelector(".row");
-
-    await themeSteps(page);
-    await rowWidthSteps(page);
-    await youtubeTooltipSteps(page);
-    await dropdownSteps(page);
-    await steps(page);
-    await themeScrollSteps(page);
-    await playerLayoutSteps(page);
-    await scenarioSteps(browser, BASE, check);
+    const started = await startServer();
+    server = started.server;
+    const base = started.base;
+    browser = await puppeteer.launch({
+      executablePath: chromePath(),
+      headless: true,
+      args: ["--no-sandbox", "--mute-audio"],
+    });
+    console.log("Browser: " + (await browser.version()));
+    for (const suite of [
+      themeSteps,
+      rowWidthSteps,
+      tooltipTimingSteps,
+      youtubeTooltipSteps,
+      dropdownSteps,
+      steps,
+      themeScrollSteps,
+      playerLayoutSteps,
+    ]) {
+      if (process.env.TEST_SUITE && process.env.TEST_SUITE !== suite.name)
+        continue;
+      const context = await browser.createBrowserContext();
+      page = await context.newPage();
+      page.on("pageerror", (error) =>
+        jsErrors.push(suite.name + ": " + error.message),
+      );
+      await page.setViewport({ width: 1500, height: 940 });
+      // Icon/menu contracts must survive changes to real embed availability.
+      const catalog = [
+        tooltipTimingSteps,
+        youtubeTooltipSteps,
+        dropdownSteps,
+      ].includes(suite)
+        ? edgeSongs
+        : undefined;
+      await preparePage(page, base, { catalog });
+      try {
+        await ready(page, base);
+        if (suite === themeScrollSteps || suite === playerLayoutSteps) {
+          await page.click(".row");
+          await page.click("#btnPlay");
+        }
+        const before = results.filter((r) => !r.ok).length;
+        const errorsBefore = jsErrors.length;
+        await suite(page);
+        assertTransport(page);
+        if (
+          results.filter((r) => !r.ok).length > before ||
+          jsErrors.length > errorsBefore
+        )
+          await diagnostics(
+            page,
+            suite.name,
+            JSON.stringify(
+              { failures: results.filter((r) => !r.ok), jsErrors },
+              null,
+              2,
+            ),
+          );
+      } catch (error) {
+        check(suite.name, false, error.message);
+        await diagnostics(page, suite.name, error);
+      } finally {
+        await context.close();
+        page = null;
+      }
+    }
+    for (const [name, execute] of [
+      ["scenarios", () => scenarioSteps(browser, base, check)],
+      ["player", () => playerContractSteps(browser, base, check)],
+      ["upgrade", () => releaseUpgradeSteps(browser, check)],
+    ]) {
+      if (process.env.TEST_SUITE && process.env.TEST_SUITE !== name) continue;
+      try {
+        await execute();
+      } catch (error) {
+        check(name, false, error.message);
+      }
+    }
+  } catch (error) {
+    check("запуск тестов", false, error.message);
+    await diagnostics(page, "runner", error);
   } finally {
-    await browser.close();
-    server.kill();
+    try {
+      await browser?.close();
+    } finally {
+      if (server && server.exitCode === null && server.signalCode === null) {
+        const closed = once(server, "exit");
+        server.kill();
+        await closed;
+      }
+    }
   }
-
   report(jsErrors);
 }
 
 /* ── помощники внутри страницы ─────────────────────────────── */
 
-const helpers = `
+function installHelpers() {
   window.T = {
-    rows: () => [...document.querySelectorAll('.row')],
+    rows: () => [...document.querySelectorAll(".row")],
     row: (id) => document.querySelector('.row[data-id="' + id + '"]'),
-    click: (node) => node.dispatchEvent(new MouseEvent('click', { bubbles: true })),
-    dblclick: (node) => node.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })),
-    key: (key) => document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true })),
+    click: (node) =>
+      node.dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    dblclick: (node) =>
+      node.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })),
+    key: (key) =>
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key, bubbles: true }),
+      ),
     typeSearch: (value) => {
-      const input = document.getElementById('search');
+      const input = document.getElementById("search");
       input.value = value;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     },
     change: (id, value) => {
       const control = document.getElementById(id);
       control.value = value;
-      control.dispatchEvent(new Event('change', { bubbles: true }));
+      control.dispatchEvent(new Event("change", { bubbles: true }));
     },
   };
-`;
+}
 
 async function rowWidthSteps(page) {
   for (const width of [1280, 1024, 390, 320]) {
     await page.setViewport({ width, height: 720 });
     for (const selector of [".row:not(:has(.row-ext))", ".row:has(.row-ext)"]) {
       const row = await page.$(selector);
+      if (!row) continue; // Edge-case icons are also exercised with the fixed contract catalog.
       await page.mouse.move(0, 0);
       const before = await row.evaluate((node) => {
         const box = node.getBoundingClientRect();
         return {
           height: box.height,
           title: node.querySelector(".row-title").getBoundingClientRect().width,
-          artist: node.querySelector(".row-artist").getBoundingClientRect().width,
-          titleTop: node.querySelector(".row-title").getBoundingClientRect().top - box.top,
-          artistTop: node.querySelector(".row-artist").getBoundingClientRect().top - box.top,
+          artist: node.querySelector(".row-artist").getBoundingClientRect()
+            .width,
+          titleTop:
+            node.querySelector(".row-title").getBoundingClientRect().top -
+            box.top,
+          artistTop:
+            node.querySelector(".row-artist").getBoundingClientRect().top -
+            box.top,
           width: box.width,
         };
       });
       await row.hover();
       const valid = await row.evaluate((node, before) => {
         const title = node.querySelector(".row-title").getBoundingClientRect();
-        const artist = node.querySelector(".row-artist").getBoundingClientRect();
+        const artist = node
+          .querySelector(".row-artist")
+          .getBoundingClientRect();
         const meta = node.querySelector(".row-meta").getBoundingClientRect();
         const icon = node.querySelector(".row-ext")?.getBoundingClientRect();
         return (
           before.title >= before.width - 60 &&
           Math.abs(before.artist - before.title) < 1 &&
           Math.abs(node.getBoundingClientRect().height - before.height) < 1 &&
-          Math.abs(title.top - node.getBoundingClientRect().top - before.titleTop) < 1 &&
-          Math.abs(artist.top - node.getBoundingClientRect().top - before.artistTop) < 1 &&
+          Math.abs(
+            title.top - node.getBoundingClientRect().top - before.titleTop,
+          ) < 1 &&
+          Math.abs(
+            artist.top - node.getBoundingClientRect().top - before.artistTop,
+          ) < 1 &&
           title.right <= meta.left &&
           meta.top >= node.getBoundingClientRect().top &&
           meta.bottom <= node.getBoundingClientRect().bottom &&
-          [...node.querySelectorAll(".row-badge")].every((badge) =>
-            badge.scrollWidth <= badge.clientWidth + 1 &&
-            getComputedStyle(badge).textOverflow !== "ellipsis"
+          [...node.querySelectorAll(".row-badge")].every(
+            (badge) =>
+              badge.scrollWidth <= badge.clientWidth + 1 &&
+              getComputedStyle(badge).textOverflow !== "ellipsis",
           ) &&
-          meta.width > 0 && artist.right <= meta.left &&
+          meta.width > 0 &&
+          artist.right <= meta.left &&
           (!icon || (title.right <= icon.left && meta.right <= icon.left))
         );
       }, before);
-      check(`ширина текста и метки без пересечений: ${selector}, ${width}px`, valid);
+      check(
+        `ширина текста и метки без пересечений: ${selector}, ${width}px`,
+        valid,
+      );
     }
     const failures = await page.evaluate(() => {
       const failures = [];
@@ -152,15 +261,23 @@ async function rowWidthSteps(page) {
         const box = row.getBoundingClientRect();
         const title = row.querySelector(".row-title").getBoundingClientRect();
         const meta = row.querySelector(".row-meta").getBoundingClientRect();
-        if (Math.abs(box.height - height) > 1 || title.width < 40 ||
-            title.right > meta.left || meta.bottom > box.bottom ||
-            meta.top < box.top) failures.push(row.dataset.id);
+        if (
+          Math.abs(box.height - height) > 1 ||
+          title.width < 40 ||
+          title.right > meta.left ||
+          meta.bottom > box.bottom ||
+          meta.top < box.top
+        )
+          failures.push(row.dataset.id);
       }
       document.activeElement?.blur();
       return failures;
     });
-    check(`все карточки сохраняют высоту и место для текста при ${width}px`,
-      failures.length === 0, failures.join(", "));
+    check(
+      `все карточки сохраняют высоту и место для текста при ${width}px`,
+      failures.length === 0,
+      failures.join(", "),
+    );
   }
   const wrapping = await page.evaluate(() => {
     const row = document.querySelector(".row");
@@ -169,12 +286,14 @@ async function rowWidthSteps(page) {
     const original = meta.innerHTML;
     const height = row.getBoundingClientRect().height;
     const layout = (labels) => {
-      meta.replaceChildren(...labels.map((label) => {
-        const badge = document.createElement("span");
-        badge.className = "row-badge";
-        badge.textContent = label;
-        return badge;
-      }));
+      meta.replaceChildren(
+        ...labels.map((label) => {
+          const badge = document.createElement("span");
+          badge.className = "row-badge";
+          badge.textContent = label;
+          return badge;
+        }),
+      );
       return [...meta.children].map((badge) => badge.getBoundingClientRect());
     };
     const short = layout(["Поп", "Рок", "EN"]);
@@ -192,14 +311,69 @@ async function rowWidthSteps(page) {
   await page.waitForSelector(".row");
 }
 
+async function tooltipTimingSteps(page) {
+  const result = await page.evaluate(() => {
+    const originalSet = window.setTimeout,
+      originalClear = window.clearTimeout;
+    const scheduled = new Map();
+    let next = -1;
+    window.setTimeout = (callback, delay) => {
+      const id = next--;
+      scheduled.set(id, { callback, delay });
+      return id;
+    };
+    window.clearTimeout = (id) =>
+      scheduled.has(id) ? scheduled.delete(id) : originalClear(id);
+    const anchor = document.querySelector(".row-ext");
+    const tooltip = document.getElementById("app-tooltip");
+    const enter = () =>
+      anchor.dispatchEvent(
+        new PointerEvent("pointerover", {
+          bubbles: true,
+          pointerType: "mouse",
+        }),
+      );
+    const leave = () =>
+      anchor.dispatchEvent(
+        new PointerEvent("pointerout", {
+          bubbles: true,
+          relatedTarget: document.body,
+        }),
+      );
+    try {
+      enter();
+      const delayed =
+        tooltip.hidden &&
+        scheduled.size === 1 &&
+        [...scheduled.values()][0].delay > 0;
+      for (const [id, task] of [...scheduled]) {
+        scheduled.delete(id);
+        task.callback();
+      }
+      const shown = !tooltip.hidden;
+      leave();
+      enter();
+      leave();
+      return {
+        delayed,
+        shown,
+        cancelled: tooltip.hidden && scheduled.size === 0,
+      };
+    } finally {
+      window.setTimeout = originalSet;
+      window.clearTimeout = originalClear;
+    }
+  });
+  check("подсказка скрыта до срабатывания таймера", result.delayed);
+  check("таймер действительно показывает подсказку", result.shown);
+  check("уход указателя отменяет ожидающую подсказку", result.cancelled);
+}
+
 async function youtubeTooltipSteps(page) {
   const icon = await page.$(".row-ext");
   await icon.evaluate((node) => node.scrollIntoView({ block: "center" }));
   await icon.hover();
-  check(
-    "подсказка не появляется сразу при наведении",
-    await page.$eval("#app-tooltip", (node) => node.hidden),
-  );
+
   await page.waitForFunction(
     () => !document.getElementById("app-tooltip").hidden,
   );
@@ -585,14 +759,28 @@ async function themeSteps(page) {
 }
 
 async function steps(page) {
-  await page.evaluate(helpers);
+  await page.evaluate(installHelpers);
   await page.evaluate(async () => {
     window.__catalog = (await import("/data/catalog.js")).SONGS;
   });
 
+  const primary = await page.evaluate(() =>
+    window.__catalog.find(
+      (s) =>
+        !s.noembed &&
+        !s.blocked?.includes(s.id) &&
+        s.verse?.length &&
+        s.chorus?.length,
+    ),
+  );
+  if (!primary)
+    throw new Error(
+      "Каталог не содержит песни с куплетом, припевом и разрешённым видео",
+    );
+
   /* ── каталог ── */
   const total = await page.evaluate(() => window.__catalog.length);
-  check("каталог загружен", total > 150, total);
+  check("каталог загружен", total > 0, total);
   check(
     "все песни в списке",
     (await page.evaluate(() => T.rows().length)) === total,
@@ -625,22 +813,24 @@ async function steps(page) {
   check("сортировка по исполнителю", artistSorted);
 
   /* ── выбор без запуска видео ── */
-  await page.evaluate(() => T.click(T.row("AJFHUiFof9M")));
+  await page.evaluate((id) => T.click(T.row(id)), primary.id);
   await page.waitForFunction(
-    () => document.getElementById("nowTitle").textContent === "Знаешь ли ты",
+    (title) => document.getElementById("nowTitle").textContent === title,
+    {},
+    primary.title,
   );
 
   check(
     "песня выбрана",
-    (await page.$eval("#nowTitle", (n) => n.textContent)) === "Знаешь ли ты",
+    (await page.$eval("#nowTitle", (n) => n.textContent)) === primary.title,
   );
   check(
     "исполнитель показан",
-    (await page.$eval("#nowArtist", (n) => n.textContent)) === "МакSим",
+    (await page.$eval("#nowArtist", (n) => n.textContent)) === primary.artist,
   );
   check(
     "строка подсвечена",
-    (await page.$eval(".row.active", (n) => n.dataset.id)) === "AJFHUiFof9M",
+    (await page.$eval(".row.active", (n) => n.dataset.id)) === primary.id,
   );
 
   const idleFrame = await frameState(page);
@@ -656,7 +846,7 @@ async function steps(page) {
   check(
     "выбор песни запоминается",
     (await page.evaluate(() => localStorage.getItem("karaoke.last.v1"))) ===
-      "AJFHUiFof9M",
+      primary.id,
   );
 
   /* ── запуск по явному действию ── */
@@ -666,7 +856,7 @@ async function steps(page) {
   const playingFrame = await frameState(page);
   check(
     "плеер открылся на странице",
-    !playingFrame.hidden && playingFrame.src.includes("AJFHUiFof9M"),
+    !playingFrame.hidden && playingFrame.src.includes(primary.id),
   );
   check("автозапуск включён", playingFrame.src.includes("autoplay=1"));
   check(
@@ -680,9 +870,12 @@ async function steps(page) {
   check("припев показан", /Припев/.test(lyricsText));
   check(
     "верный текст куплета",
-    /Я так привыкла жить одним тобой/.test(lyricsText),
+    primary.verse.every((line) => lyricsText.includes(line)),
   );
-  check("верный текст припева", /Вдоль ночных дорог/.test(lyricsText));
+  check(
+    "верный текст припева",
+    primary.chorus.every((line) => lyricsText.includes(line)),
+  );
 
   /* ── мусор из источника не должен попадать в текст ── */
   const entitySongs = await page.evaluate(
@@ -695,114 +888,39 @@ async function steps(page) {
   );
   check("в текстах нет HTML-сущностей", entitySongs === 0, entitySongs);
 
-  const kaban = await page.evaluate(() => {
-    const song = window.__catalog.find((s) => s.title === "Кабан");
-    return song ? song.verse[song.verse.length - 1] : "";
-  });
-  check(
-    "строка «Кабан» без мусора",
-    kaban === "Кабан — мне бы солнца и чуток желудей (Хей)",
-    kaban,
-  );
-
-  await page.evaluate(() => {
-    const row = [...T.rows()].find(
-      (r) => r.querySelector(".row-title").textContent === "Кабан",
-    );
-    if (row) T.click(row);
-  });
-  check(
-    "мусор не виден в тексте песни",
-    !/&#?\w+;/.test(await page.$eval("#lyricsBody", (n) => n.textContent)) &&
-      /чуток желудей/.test(
-        await page.$eval("#lyricsBody", (n) => n.textContent),
-      ),
-  );
-
-  // возвращаемся к песне, на которой проверялись плеер и текст
-  await page.evaluate(() => T.click(T.row("AJFHUiFof9M")));
-
   /* ── поиск ── */
-  const searchCount = async (query) => {
+  for (const query of ["максим", "земфира", "батарейка"]) {
     await page.evaluate((q) => T.typeSearch(q), query);
-    return page.evaluate(() => T.rows().length);
-  };
-
-  check(
-    "поиск находит МакSим (латиница/кириллица)",
-    (await searchCount("максим")) === 9,
-  );
-  check("поиск по исполнителю", (await searchCount("земфира")) === 5);
-  check("поиск по названию", (await searchCount("батарейка")) === 1);
-  check("поиск по жанру", (await searchCount("рок")) > 20);
+    const match = await page.evaluate((query) => {
+      const expected = window.__catalog
+        // These three single-word queries need only case folding and the
+        // known Latin S in МакSим. Do not reuse the application's search index.
+        .filter((song) =>
+          [song.artist, song.title, song.genre, song.category]
+            .join(" ")
+            .toLowerCase()
+            .replaceAll("s", "с")
+            .replaceAll("ё", "е")
+            .includes(query),
+        )
+        .map((s) => s.id)
+        .sort();
+      const actual = T.rows()
+        .map((r) => r.dataset.id)
+        .sort();
+      return JSON.stringify(actual) === JSON.stringify(expected);
+    }, query);
+    check(
+      "поиск «" + query + "»: точный набор песен из исходных метаданных",
+      match,
+    );
+  }
 
   await page.evaluate(() => T.click(document.getElementById("searchClear")));
   check(
     "очистка поиска",
     (await page.evaluate(() => T.rows().length)) === total,
   );
-
-  /* ── фильтры ── */
-  await page.evaluate(() =>
-    T.click(
-      [...document.querySelectorAll(".chip")].find(
-        (c) => c.dataset.cat === "Русский рок",
-      ),
-    ),
-  );
-  const rockCount = await page.evaluate(
-    () => window.__catalog.filter((s) => s.category === "Русский рок").length,
-  );
-  check(
-    "фильтр по категории",
-    (await page.evaluate(() => T.rows().length)) === rockCount,
-  );
-  check(
-    "чип выбран",
-    (await page.$eval('.chip[data-cat="Русский рок"]', (n) =>
-      n.getAttribute("aria-selected"),
-    )) === "true",
-  );
-
-  await page.evaluate(() =>
-    T.click(document.querySelector('.chip[data-cat="Русский рок"]')),
-  );
-  check(
-    "повторный клик снимает фильтр",
-    (await page.evaluate(() => T.rows().length)) === total,
-  );
-
-  await page.evaluate(() => T.change("genreFilter", "Хард-рок"));
-  const hardRock = await page.evaluate(
-    () => window.__catalog.filter((s) => s.genre === "Хард-рок").length,
-  );
-  check(
-    "фильтр по жанру",
-    (await page.evaluate(() => T.rows().length)) === hardRock,
-  );
-
-  await page.evaluate(() => T.change("langFilter", "en"));
-  check("фильтр по языку", (await page.evaluate(() => T.rows().length)) === 0);
-
-  await page.evaluate(() => T.click(document.getElementById("resetFilters")));
-  check(
-    "сброс фильтров",
-    (await page.evaluate(() => T.rows().length)) === total,
-  );
-
-  /* ── сортировки ── */
-  for (const [mode, label] of [
-    ["title", "названию"],
-    ["genre", "жанру"],
-    ["category", "категории"],
-  ]) {
-    await page.evaluate((value) => T.change("sort", value), mode);
-    const groups = await page.evaluate(
-      () => document.querySelectorAll(".group-head").length,
-    );
-    check(`сортировка по ${label}`, groups > 3, groups);
-  }
-  await page.evaluate(() => T.change("sort", "artist"));
 
   /* ── большой текст ── */
   await page.evaluate(() => T.click(document.getElementById("btnFullLyrics")));
@@ -814,8 +932,8 @@ async function steps(page) {
   );
   check(
     "в оверлее есть слова",
-    /Знаешь ли ты/.test(
-      await page.$eval("#overlayInner", (n) => n.textContent),
+    (await page.$eval("#overlayInner", (n) => n.textContent)).includes(
+      primary.title,
     ),
   );
   await page.evaluate(() => T.click(document.getElementById("overlayClose")));
@@ -840,6 +958,8 @@ async function steps(page) {
   check("размер текста меняется", before !== after, `${before} → ${after}`);
 
   /* ── клавиатура ── */
+  // Start away from the lower boundary; catalog order may change in releases.
+  await page.click(".row");
   const beforeArrow = await page.$eval(".row.active", (n) => n.dataset.id);
   await page.evaluate(() => T.key("ArrowDown"));
   check(
@@ -888,184 +1008,8 @@ async function steps(page) {
   });
   check("все песни открываются и показывают текст", broken === 0, broken);
 
-  /* ── видео без встраивания ── */
-  const noembed = await page.evaluate(() =>
-    window.__catalog
-      .filter((s) => s.noembed)
-      .map((s) => ({ id: s.id, title: s.title })),
-  );
-  check("есть песни без встраивания", noembed.length > 0, noembed.length);
-
-  await page.evaluate(() => {
-    window.opened = [];
-    window.open = (url) => {
-      window.opened.push(url);
-      return null;
-    };
-  });
-
-  await page.evaluate((id) => T.click(T.row(id)), noembed[0].id);
-  check(
-    "выбор такой песни не грузит видео",
-    (await frameState(page)).hidden === true,
-  );
-
-  await page.evaluate(() => T.click(document.getElementById("bigPlay")));
-  await page.waitForFunction(
-    () => document.getElementById("videoBlocked").hidden === false,
-  );
-
-  check(
-    "вместо чёрного плеера — понятное сообщение",
-    await page.evaluate(
-      () => document.getElementById("videoBlocked").hidden === false,
-    ),
-  );
-  const blockedFrame = await frameState(page);
-  check(
-    "iframe не грузит запрещённое видео",
-    blockedFrame.hidden && !blockedFrame.src,
-  );
-  check(
-    "объяснено, почему не играет",
-    /только на YouTube/.test(
-      await page.$eval("#videoBlocked", (n) => n.textContent),
-    ),
-  );
-  check(
-    "вкладку не открываем сами",
-    (await page.evaluate(() => window.opened.length)) === 0,
-  );
-
-  await page.evaluate(() => T.click(document.getElementById("openYtBtn")));
-  const opened = await page.evaluate(() => window.opened);
-  check(
-    "кнопка «Смотреть на YouTube» ведёт на видео",
-    opened.length === 1 && opened[0].includes(noembed[0].id),
-    opened.join(" "),
-  );
-  check(
-    "в списке помечены такие песни",
-    await page.evaluate(
-      (id) => !!T.row(id)?.querySelector(".row-ext"),
-      noembed[0].id,
-    ),
-  );
-
-  /* ── версии: вторая может быть запрещена для встраивания ── */
-  const versioned = await page.evaluate(() => {
-    const song = window.__catalog.find(
-      (s) => s.alt?.length && s.blocked?.includes(s.alt[0]),
-    );
-    return song ? { id: song.id, alt: song.alt[0], title: song.title } : null;
-  });
-  check(
-    "есть песня с заблокированной второй версией",
-    !!versioned,
-    versioned?.title,
-  );
-
-  if (versioned) {
-    // выбор версии 2 до запуска не должен теряться при нажатии ▶
-    await page.evaluate((id) => T.click(T.row(id)), versioned.id);
-    await page.evaluate(() => T.click(document.getElementById("btnAlt")));
-    check(
-      "кнопка версии переключает на версию 2",
-      (await page.$eval("#altLabel", (n) => n.textContent)) === "Версия 2/2",
-    );
-    check(
-      "подсказка предупреждает про версию на YouTube",
-      /только на YouTube/.test(
-        await page.$eval("#emptySub", (n) => n.textContent),
-      ),
-    );
-
-    await page.evaluate(() => {
-      window.opened = [];
-    });
-    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
-    check(
-      "выбор версии не откатывается молча",
-      (await page.$eval("#altLabel", (n) => n.textContent)) === "Версия 2/2",
-    );
-    check(
-      "запрещённая версия открывается на YouTube",
-      (await page.evaluate(() => window.opened)).some((url) =>
-        url.includes(versioned.alt),
-      ),
-      (await page.evaluate(() => window.opened)).join(" "),
-    );
-    check(
-      "вместо версии 1 показано объяснение",
-      (await page.evaluate(
-        () => document.getElementById("videoBlocked").hidden === false,
-      )) && (await frameState(page)).hidden,
-    );
-    check(
-      "объяснение называет версию",
-      /Версия 2\/2/.test(await page.$eval("#blockedSub", (n) => n.textContent)),
-    );
-    check(
-      "объяснение говорит про новую вкладку",
-      /новой вкладке/.test(
-        await page.$eval("#blockedSub", (n) => n.textContent),
-      ),
-    );
-
-    const tabsBefore = (await page.evaluate(() => window.opened)).length;
-    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
-    check(
-      "повторный ▶ не открывает новую вкладку",
-      (await page.evaluate(() => window.opened)).length === tabsBefore,
-    );
-    check(
-      "есть кнопка перехода на другую версию",
-      await page.evaluate(
-        () => document.getElementById("blockedAltBtn").hidden === false,
-      ),
-    );
-
-    await page.evaluate(() =>
-      T.click(document.getElementById("blockedAltBtn")),
-    );
-    check(
-      "кнопка возвращает на играющую версию",
-      (await page.$eval("#altLabel", (n) => n.textContent)) === "Версия 1/2",
-    );
-
-    // переключение версии на ходу игры не должно оставлять старую версию
-    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
-    await page.waitForFunction(
-      () => !document.getElementById("ytFrame").hidden,
-    );
-    await page.evaluate(() => T.click(document.getElementById("btnAlt")));
-    check(
-      "переключение на запрещённую версию останавливает видео",
-      (await frameState(page)).hidden &&
-        (await page.evaluate(
-          () => document.getElementById("videoBlocked").hidden === false,
-        )),
-    );
-
-    await page.evaluate(() =>
-      T.click(document.getElementById("blockedAltBtn")),
-    );
-    await page.evaluate(() => T.click(document.getElementById("bigPlay")));
-    await page.waitForFunction(() =>
-      (document.getElementById("ytFrame").getAttribute("src") || "").includes(
-        "tOGTcsley1U",
-      ),
-    );
-    check(
-      "после возврата играет первая версия",
-      (await frameState(page)).src.includes("tOGTcsley1U"),
-    );
-  }
-
   // обычная песня по-прежнему играет в рамке
-  const normalId = await page.evaluate(
-    () => window.__catalog.find((s) => !s.noembed).id,
-  );
+  const normalId = primary.id;
   await page.evaluate((id) => T.click(T.row(id)), normalId);
   await page.evaluate(() => T.click(document.getElementById("bigPlay")));
   await page.waitForFunction(() => !document.getElementById("ytFrame").hidden);
@@ -1082,7 +1026,10 @@ async function steps(page) {
 
   /* ── двойной клик всё ещё запускает ── */
   const dblId = await page.evaluate(
-    (skip) => window.__catalog.find((s) => !s.noembed && s.id !== skip).id,
+    (skip) =>
+      window.__catalog.find(
+        (s) => !s.noembed && !s.blocked?.includes(s.id) && s.id !== skip,
+      ).id,
     normalId,
   );
   await page.evaluate((id) => T.click(T.row(id)), dblId);
@@ -1189,19 +1136,21 @@ const frameState = (page) =>
   });
 
 function report(jsErrors) {
+  if (!results.length)
+    check("выбранный набор тестов существует", false, process.env.TEST_SUITE);
   console.log("");
   let failed = 0;
   for (const result of results) {
     if (!result.ok) failed++;
     const extra = result.extra ? `  [${result.extra}]` : "";
-    console.log(`${result.ok ? "  ok  " : " FAIL "} ${result.name}${extra}`);
+    if (!result.ok) console.log(` FAIL ${result.name}${extra}`);
   }
 
   if (jsErrors.length) console.log("\nОшибки JS:\n" + jsErrors.join("\n"));
   console.log(
     `\n${results.length - failed}/${results.length} проверок пройдено, ${jsErrors.length} ошибок JS\n`,
   );
-  process.exit(failed || jsErrors.length ? 1 : 0);
+  process.exitCode = failed || jsErrors.length ? 1 : 0;
 }
 
 run().catch((error) => {

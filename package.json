@@ -7,12 +7,16 @@
   "scripts": {
     "start": "node scripts/dev-server.js",
     "build": "node scripts/build-catalog.js",
-    "test": "node tests/ui.test.js",
+    "test": "node --test tests/logic.test.js && node tests/ui.test.js",
+    "test:browser": "node tests/install-browser.js",
+    "test:mutations": "node tests/mutations.js",
     "check-embeds": "node scripts/check-embeds.js",
     "fetch-lyrics": "node scripts/fetch-lyrics.js",
     "screenshots": "node tests/screenshots.js"
   },
   "devDependencies": {
+    "@fontsource/manrope": "5.3.0",
+    "@puppeteer/browsers": "3.2.6",
     "prettier": "^3.9.10",
     "puppeteer-core": "^25.16.0"
   }

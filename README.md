@@ -92,7 +92,9 @@ npm test
 
 ```bash
 npm start                                         # локально: http://localhost:4173
+npm run test:browser                              # установить тестовый Chrome после npm ci
 npm test                                          # проверка интерфейса
+npm run test:mutations                            # убедиться, что тесты ловят намеренные поломки
 npm run fetch-lyrics                              # дозагрузить тексты из LRCLIB
 npm run check-embeds                              # проверить, встраиваются ли видео
 node scripts/check-embeds.js --only id1,id2         # проверить выбранные видео

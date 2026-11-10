@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-2025
     timeout-minutes: 15
     env:
-      CHROME_PATH: C:\Program Files\Google\Chrome\Application\chrome.exe
+      TEST_ARTIFACT_DIR: tests/artifacts
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -27,5 +27,16 @@ jobs:
         run: npm ci
       - name: Build catalog
         run: npm run build
+      - name: Install pinned Chrome
+        run: npm run test:browser
       - name: Run user scenarios
         run: npm test
+      - name: Verify tests detect intentional defects
+        run: npm run test:mutations
+      - name: Save failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-diagnostics
+          path: tests/artifacts
+          if-no-files-found: ignore

@@ -4,6 +4,7 @@ node_modules/
 # локальные артефакты прогонов
 *.log
 tests/screens/
+tests/artifacts/
 
 # ОС и редакторы
 .DS_Store

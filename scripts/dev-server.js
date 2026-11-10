@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const port = Number(process.env.PORT) || 4173;
+const port = process.env.PORT === undefined ? 4173 : Number(process.env.PORT);
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -27,7 +27,7 @@ function resolveFile(url) {
   return target.startsWith(root) ? target : null;
 }
 
-http
+const server = http
   .createServer((req, res) => {
     const file = resolveFile(req.url);
 
@@ -49,5 +49,5 @@ http
     });
   })
   .listen(port, () => {
-    console.log(`Караоке: http://localhost:${port}`);
+    console.log(`Караоке: http://localhost:${server.address().port}`);
   });
