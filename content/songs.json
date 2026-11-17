@@ -1457,5 +1457,21 @@
     "genre": "Поп",
     "category": "Зарубежная музыка",
     "lang": "en"
+  },
+  {
+    "id": "mlwGdezFEck",
+    "artist": "Иван Дорн",
+    "title": "Стыцамэн",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "MKryPS30igo",
+    "artist": "Демо",
+    "title": "Солнышко",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
   }
 ]
