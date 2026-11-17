@@ -132,12 +132,7 @@ export function selectSong(id, options = {}) {
   }
   el.nowTags.innerHTML = tags.join("");
 
-  for (const button of [
-    el.btnPlay,
-    el.btnRestart,
-    el.btnYt,
-    el.btnStop,
-  ]) {
+  for (const button of [el.btnPlay, el.btnRestart, el.btnYt, el.btnStop]) {
     button.disabled = false;
   }
 

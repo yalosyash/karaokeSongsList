@@ -44,15 +44,17 @@ export function wireTooltips() {
     const { width, height } = tooltip.getBoundingClientRect();
     const gap = 15;
     const above = anchor.dataset.tooltipPlacement === "top";
-    const preferredLeft =
-      above ? rect.left + (rect.width - width) / 2 :
-      rect.right + gap + width <= innerWidth - 12
+    const preferredLeft = above
+      ? rect.left + (rect.width - width) / 2
+      : rect.right + gap + width <= innerWidth - 12
         ? rect.right + gap
         : rect.left - gap - width;
     const left = Math.max(12, Math.min(preferredLeft, innerWidth - width - 12));
     const top = Math.min(
       above
-        ? (rect.top >= height + gap + 12 ? rect.top - height - gap : rect.bottom + gap)
+        ? rect.top >= height + gap + 12
+          ? rect.top - height - gap
+          : rect.bottom + gap
         : rect.top + (rect.height - height) / 2,
       innerHeight - height - 12,
     );

@@ -1433,5 +1433,29 @@
     "genre": "Панк-рок",
     "category": "Русский рок",
     "lang": "ru"
+  },
+  {
+    "id": "qilnR3ylNkc",
+    "artist": "Анна Герман",
+    "title": "Надежда",
+    "genre": "Эстрада",
+    "category": "Советская эстрада и кино",
+    "lang": "ru"
+  },
+  {
+    "id": "O52enkT7pFE",
+    "artist": "Bonnie Tyler",
+    "title": "Holding Out for a Hero",
+    "genre": "Поп-рок",
+    "category": "Зарубежная музыка",
+    "lang": "en"
+  },
+  {
+    "id": "Cn56cdLK73o",
+    "artist": "The Tokens",
+    "title": "The Lion Sleeps Tonight",
+    "genre": "Поп",
+    "category": "Зарубежная музыка",
+    "lang": "en"
   }
 ]

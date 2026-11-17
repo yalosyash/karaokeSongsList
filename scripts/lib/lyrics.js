@@ -21,15 +21,11 @@ function decodeEntities(text) {
   return text
     .replace(/&#x([0-9a-f]+);/gi, (match, hex) => {
       const code = parseInt(hex, 16);
-      return code > 0 && code <= 0x10ffff
-        ? String.fromCodePoint(code)
-        : match;
+      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
     })
     .replace(/&#(\d+);/g, (match, dec) => {
       const code = Number(dec);
-      return code > 0 && code <= 0x10ffff
-        ? String.fromCodePoint(code)
-        : match;
+      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
     })
     .replace(/&([a-z]+);/gi, (match, name) => {
       const value = NAMED_ENTITIES[name.toLowerCase()];
