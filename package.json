@@ -5,9 +5,10 @@
   "description": "Караоке-панель для стрима: список песен, первые слова и плеер на одном экране",
   "type": "module",
   "scripts": {
+    "add-song": "node tools/song-import/add-song.js",
     "start": "node scripts/dev-server.js",
     "build": "node scripts/build-catalog.js",
-    "test": "node --test tests/logic.test.js && node tests/ui.test.js",
+    "test": "node --test tests/logic.test.js tools/song-import/tests/*.test.js && node tests/ui.test.js",
     "test:browser": "node tests/install-browser.js",
     "test:mutations": "node tests/mutations.js",
     "check-embeds": "node scripts/check-embeds.js",

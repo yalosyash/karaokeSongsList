@@ -127,9 +127,6 @@ export function selectSong(id, options = {}) {
     `<span class="now-tag">${escapeHtml(song.genre)}</span>`,
   ];
   if (song.lang === "en") tags.push('<span class="now-tag">English</span>');
-  if (song.channel) {
-    tags.push(`<span class="now-tag">${escapeHtml(song.channel)}</span>`);
-  }
   el.nowTags.innerHTML = tags.join("");
 
   for (const button of [el.btnPlay, el.btnRestart, el.btnYt, el.btnStop]) {

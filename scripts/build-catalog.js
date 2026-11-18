@@ -88,11 +88,8 @@ fs.mkdirSync(path.dirname(target), { recursive: true });
 fs.writeFileSync(target, source, "utf8");
 
 const kb = Math.round(Buffer.byteLength(header + body) / 1024);
-const missingChannel = catalog.filter((song) => !song.channel).length;
 const missingVerse = catalog.filter((song) => !song.verse).length;
 const blocked = catalog.filter((song) => song.noembed).length;
 
 console.log(`data/catalog.js: ${catalog.length} песен, ${kb} КБ`);
-console.log(
-  `без канала: ${missingChannel} | без куплета: ${missingVerse} | только YouTube: ${blocked}`,
-);
+console.log(`без куплета: ${missingVerse} | только YouTube: ${blocked}`);
