@@ -15,7 +15,7 @@ npm run add-song -- "https://www.youtube.com/watch?v=VIDEO_ID"
 Если загрузка или проверка прервалась, локальные данные сохраняются. Для продолжения используйте ту же ссылку с `--resume`:
 
 ```sh
-npm run add-song -- --resume "https://www.youtube.com/watch?v=VIDEO_ID"
+node tools/song-import/add-song.js --resume "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 После исправления текста вручную также продолжите через `--resume`. Утилита выводит точную команду при ошибке.

@@ -1,5 +1,5 @@
 /* Сгенерировано scripts/build-catalog.js — не править вручную.
-   Источник: content/{songs,lyrics,meta,embeds}.json
+   Источник: content/{songs,lyrics,embeds}.json
    Тексты песен: LRCLIB (открытая база). */
 export const SONGS = [
   {
@@ -9,7 +9,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Детский Караоке Канал",
     alt: [],
     blocked: [],
     verse: [
@@ -37,7 +36,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["a5LOjg1EiAk"],
     noembed: true,
@@ -69,7 +67,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -93,7 +90,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["ifCAfAzOBJM"],
     noembed: true,
@@ -118,7 +114,6 @@ export const SONGS = [
     genre: "Детская",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "СМОТРИ ПОЕЗД!",
     alt: [],
     blocked: [],
     verse: [
@@ -148,7 +143,6 @@ export const SONGS = [
     genre: "Детская",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "МногоНотка Лимонка",
     alt: [],
     blocked: [],
     verse: [
@@ -182,7 +176,6 @@ export const SONGS = [
     genre: "Детская",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -215,7 +208,6 @@ export const SONGS = [
     genre: "Детская",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -237,7 +229,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -262,7 +253,6 @@ export const SONGS = [
     genre: "Детская",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -282,7 +272,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Лучшие Мультфильмы",
     alt: [],
     blocked: [],
     verse: [
@@ -311,7 +300,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -332,7 +320,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "MnogoNotka. Com",
     alt: [],
     blocked: [],
     verse: [
@@ -358,7 +345,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "MnogoNotka. Com",
     alt: ["YWAlyOF4Vnc"],
     blocked: [],
     verse: [
@@ -382,7 +368,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "MidiRadio",
     alt: [],
     blocked: [],
     verse: [
@@ -406,7 +391,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Детские и мультфильмы",
     lang: "ru",
-    channel: "SOL. Кванты перехода. Идем!",
     alt: [],
     blocked: [],
     verse: [
@@ -430,7 +414,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -461,7 +444,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: null,
@@ -478,7 +460,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -513,7 +494,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Jaik Bolsh",
     alt: [],
     blocked: [],
     verse: [
@@ -540,7 +520,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Алексей По",
     alt: [],
     blocked: [],
     verse: [
@@ -569,7 +548,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Саундтреки и мюзиклы",
     lang: "en",
-    channel: "MnogoNotka. Com",
     alt: [],
     blocked: [],
     verse: [
@@ -596,7 +574,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Саундтреки и мюзиклы",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -625,7 +602,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Live",
     alt: [],
     blocked: [],
     verse: [
@@ -647,7 +623,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Live",
     alt: [],
     blocked: [],
     verse: [
@@ -669,7 +644,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -691,7 +665,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -713,7 +686,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -736,7 +708,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: ["Ой, да не вечер, да не вечер.", "Мне малым малом спалось."],
@@ -751,7 +722,6 @@ export const SONGS = [
     genre: "Фолк-рок",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -775,7 +745,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -797,7 +766,6 @@ export const SONGS = [
     genre: "Фолк",
     category: "Военные и народные",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -826,7 +794,6 @@ export const SONGS = [
     genre: "Хард-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -855,7 +822,6 @@ export const SONGS = [
     genre: "Хард-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -883,7 +849,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Live",
     alt: [],
     blocked: [],
     verse: [
@@ -908,7 +873,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -932,7 +896,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -959,7 +922,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -992,7 +954,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1014,7 +975,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -1043,7 +1003,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1073,7 +1032,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1100,7 +1058,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -1127,7 +1084,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1154,7 +1110,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1179,7 +1134,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1208,7 +1162,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "AWA music",
     alt: [],
     blocked: [],
     verse: [
@@ -1237,7 +1190,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "This is Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -1261,7 +1213,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Karaoke4U",
     alt: [],
     blocked: [],
     verse: [
@@ -1291,7 +1242,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1319,7 +1269,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Save As You Sing - караоке под фортепиано",
     alt: ["Ms-J-JvrON0"],
     blocked: [],
     verse: [
@@ -1352,7 +1301,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Live",
     alt: [],
     blocked: [],
     verse: [
@@ -1376,7 +1324,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1402,7 +1349,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1434,7 +1380,6 @@ export const SONGS = [
     genre: "Инди-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Live",
     alt: [],
     blocked: [],
     verse: [
@@ -1461,7 +1406,6 @@ export const SONGS = [
     genre: "Инди-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Беларускае КАРАОКЕ",
     alt: [],
     blocked: [],
     verse: [
@@ -1490,7 +1434,6 @@ export const SONGS = [
     genre: "Инди-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -1518,7 +1461,6 @@ export const SONGS = [
     genre: "Инди-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "B&F Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -1543,7 +1485,6 @@ export const SONGS = [
     genre: "Соул",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["e3C8Nh3DIwA"],
     noembed: true,
@@ -1568,7 +1509,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["DHXrbMX7fPw"],
     noembed: true,
@@ -1593,7 +1533,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["OhRUYf_yn_s"],
     noembed: true,
@@ -1622,7 +1561,6 @@ export const SONGS = [
     genre: "Ретро-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "KeysBeat Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -1655,7 +1593,6 @@ export const SONGS = [
     genre: "Соул",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "Musisi Karaoke",
     alt: ["UadrtR56n6s"],
     blocked: ["UadrtR56n6s"],
     verse: [
@@ -1684,7 +1621,6 @@ export const SONGS = [
     genre: "Соул",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "Musisi Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -1715,7 +1651,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "Musisi Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -1742,7 +1677,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["3WLy3AblvmQ"],
     noembed: true,
@@ -1771,7 +1705,6 @@ export const SONGS = [
     genre: "Соул",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["gf0taQyr0E0"],
     noembed: true,
@@ -1802,7 +1735,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["XaRyJVXclvY"],
     noembed: true,
@@ -1832,7 +1764,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["OJorUj0JA3w"],
     noembed: true,
@@ -1863,7 +1794,6 @@ export const SONGS = [
     genre: "Хип-хоп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["exPFJVbIz0c"],
     noembed: true,
@@ -1886,7 +1816,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["w54NfoUuhXo"],
     noembed: true,
@@ -1914,7 +1843,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["1a5SWpp9Wfg"],
     noembed: true,
@@ -1947,7 +1875,6 @@ export const SONGS = [
     genre: "Соул",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["8kotNQ07ZEw"],
     noembed: true,
@@ -1968,7 +1895,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["CGXeSUtbhFk"],
     noembed: true,
@@ -1998,7 +1924,6 @@ export const SONGS = [
     genre: "Кантри-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "Mi Balmz Karaoke Tracks",
     alt: [],
     blocked: [],
     verse: [
@@ -2028,7 +1953,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["rqF-W9QBHUQ"],
     noembed: true,
@@ -2058,7 +1982,6 @@ export const SONGS = [
     genre: "Электроника",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["32LB2DR_JM0"],
     noembed: true,
@@ -2083,7 +2006,6 @@ export const SONGS = [
     genre: "Кантри-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["mNL7iE-CxXA"],
     noembed: true,
@@ -2104,7 +2026,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["7DzQs7dpNL8"],
     noembed: true,
@@ -2137,7 +2058,6 @@ export const SONGS = [
     genre: "Диско",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["WHayJZ3eMcE"],
     noembed: true,
@@ -2169,7 +2089,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["_nHT_k9Rswc"],
     noembed: true,
@@ -2203,7 +2122,6 @@ export const SONGS = [
     genre: "Инди-фолк",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["sndK-GAOLPM"],
     noembed: true,
@@ -2233,7 +2151,6 @@ export const SONGS = [
     genre: "Ретро-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["u_072m3oWT0"],
     noembed: true,
@@ -2267,7 +2184,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "Mega Karaoke Songs",
     alt: [],
     blocked: [],
     verse: [
@@ -2293,7 +2209,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2321,7 +2236,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2349,7 +2263,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2379,7 +2292,6 @@ export const SONGS = [
     genre: "Шансон",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2407,7 +2319,6 @@ export const SONGS = [
     genre: "Шансон",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2436,7 +2347,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2469,7 +2379,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Save As You Sing - караоке под фортепиано",
     alt: [],
     blocked: [],
     verse: [
@@ -2492,7 +2401,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -2523,7 +2431,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2553,7 +2460,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2585,7 +2491,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2614,7 +2519,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2643,7 +2547,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2671,7 +2574,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2699,7 +2601,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2724,7 +2625,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2757,7 +2657,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2779,7 +2678,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2804,7 +2702,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2837,7 +2734,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2859,7 +2755,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "KAS Karaoke All Stars ",
     alt: [],
     blocked: [],
     verse: [
@@ -2890,7 +2785,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Save As You Sing - караоке под фортепиано",
     alt: [],
     blocked: [],
     verse: [
@@ -2912,7 +2806,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Save As You Sing - караоке под фортепиано",
     alt: [],
     blocked: [],
     verse: [
@@ -2937,7 +2830,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2968,7 +2860,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -2997,7 +2888,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3028,7 +2918,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3059,7 +2948,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3081,7 +2969,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3112,7 +2999,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "This is Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -3134,7 +3020,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "МногоНотка Лимонка",
     alt: [],
     blocked: [],
     verse: [
@@ -3156,7 +3041,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3185,7 +3069,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3214,7 +3097,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3238,7 +3120,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3264,7 +3145,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3296,7 +3176,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3328,7 +3207,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3357,7 +3235,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3390,7 +3267,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3419,7 +3295,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3451,7 +3326,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: null,
@@ -3466,7 +3340,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3495,7 +3368,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3522,7 +3394,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3554,7 +3425,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3587,7 +3457,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3619,7 +3488,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3644,7 +3512,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3666,7 +3533,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3695,7 +3561,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3728,7 +3593,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Karaoke.online",
     alt: [],
     blocked: [],
     verse: [
@@ -3758,7 +3622,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Esenturoff",
     alt: [],
     blocked: [],
     verse: [
@@ -3790,7 +3653,6 @@ export const SONGS = [
     genre: "Хип-хоп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3823,7 +3685,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3854,7 +3715,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3879,7 +3739,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Nomad Karaoke",
     alt: [],
     blocked: [],
     verse: [
@@ -3906,7 +3765,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -3935,7 +3793,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "KAS Karaoke All Stars ",
     alt: [],
     blocked: [],
     verse: [
@@ -3957,7 +3814,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Караоке Аббатство",
     alt: [],
     blocked: [],
     verse: [
@@ -3985,7 +3841,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4016,7 +3871,6 @@ export const SONGS = [
     genre: "Ретро-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "LOWPOLY KARAOKE",
     alt: [],
     blocked: [],
     verse: [
@@ -4045,7 +3899,6 @@ export const SONGS = [
     genre: "Синти-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Peter Explorer",
     alt: [],
     blocked: [],
     verse: [
@@ -4076,7 +3929,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4105,7 +3957,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "уютни караоки",
     alt: [],
     blocked: [],
     verse: [
@@ -4135,7 +3986,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4155,7 +4005,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4184,7 +4033,6 @@ export const SONGS = [
     genre: "Хип-хоп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: null,
     alt: [],
     blocked: ["h-ivKWZO_Qk"],
     noembed: true,
@@ -4216,7 +4064,6 @@ export const SONGS = [
     genre: "Инди-поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "MnogoNotka. Com",
     alt: [],
     blocked: [],
     verse: [
@@ -4241,7 +4088,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4270,7 +4116,6 @@ export const SONGS = [
     genre: "Инди",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Чёрный Государь - Topic",
     alt: [],
     blocked: [],
     verse: [
@@ -4299,7 +4144,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4326,7 +4170,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Live",
     alt: [],
     blocked: [],
     verse: [
@@ -4353,7 +4196,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4382,7 +4224,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4411,7 +4252,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4434,7 +4274,6 @@ export const SONGS = [
     genre: "Рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4461,7 +4300,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Karaoke_SM",
     alt: [],
     blocked: [],
     verse: [
@@ -4490,7 +4328,6 @@ export const SONGS = [
     genre: "Хард-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4515,7 +4352,6 @@ export const SONGS = [
     genre: "Хард-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4540,7 +4376,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4569,7 +4404,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4595,7 +4429,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4619,7 +4452,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4648,7 +4480,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4677,7 +4508,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4704,7 +4534,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4735,7 +4564,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4764,7 +4592,6 @@ export const SONGS = [
     genre: "Хип-хоп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "KAS Karaoke All Stars",
     alt: [],
     blocked: [],
     verse: [
@@ -4796,7 +4623,6 @@ export const SONGS = [
     genre: "Саундтрек",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Save As You Sing - караоке под фортепиано",
     alt: [],
     blocked: [],
     verse: [
@@ -4820,7 +4646,6 @@ export const SONGS = [
     genre: "Фолк-поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: null,
     alt: [],
     blocked: ["2bTVI7R9scs"],
     noembed: true,
@@ -4854,7 +4679,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4883,7 +4707,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4913,7 +4736,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4942,7 +4764,6 @@ export const SONGS = [
     genre: "Панк-рок",
     category: "Русский рок",
     lang: "ru",
-    channel: "Рок Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4964,7 +4785,6 @@ export const SONGS = [
     genre: "Эстрада",
     category: "Советская эстрада и кино",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -4993,7 +4813,6 @@ export const SONGS = [
     genre: "Поп-рок",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "Sing King",
     alt: [],
     blocked: ["O52enkT7pFE"],
     noembed: true,
@@ -5026,7 +4845,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Зарубежная музыка",
     lang: "en",
-    channel: "KaraokeOnVEVO",
     alt: [],
     blocked: [],
     verse: [
@@ -5049,7 +4867,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Калинка Караоке",
     alt: [],
     blocked: [],
     verse: [
@@ -5076,7 +4893,6 @@ export const SONGS = [
     genre: "Поп",
     category: "Русская поп-музыка",
     lang: "ru",
-    channel: "Чёрный ворон. КАРаоке",
     alt: [],
     blocked: ["MKryPS30igo"],
     noembed: true,
@@ -5100,5 +4916,69 @@ export const SONGS = [
     ],
     search: "демо солнышко поп русская поп музыка",
     searchAlt: "демо солнышко поп русская поп музыка",
+  },
+  {
+    id: "yBaY05Vy308",
+    artist: "Комбинация",
+    title: "Вишневая девятка",
+    genre: "Поп",
+    category: "Русская поп-музыка",
+    lang: "ru",
+    alt: [],
+    blocked: [],
+    verse: [
+      "Ты до неё спокойно жил",
+      "Спокойно ел спокойно спал",
+      "Ты никого не сторожил",
+      "И не устраивал скандал",
+      "Меня одну лишь ты любил",
+      "Дарил вниманье и цветы",
+      "Её купил меня забыл",
+      "Теперь всё время с нею ты",
+    ],
+    chorus: [
+      "Твоя вишнёвая девятка",
+      "Меня совсем с ума свела",
+      "Твоя вишнёвая девятка",
+      "Покой мой напрочь отняла",
+      "Твоя вишнёвая девятка",
+      "Опять сигналит за окном",
+      "Твоя вишнёвая девятка",
+      "Ты полюби её потом",
+    ],
+    search: "комбинация вишневая девятка поп русская поп музыка",
+    searchAlt: "комбинация вишневая девятка поп русская поп музыка",
+  },
+  {
+    id: "4nlV2veZdyU",
+    artist: "МакSим",
+    title: "Сон",
+    genre: "Поп",
+    category: "Русская поп-музыка",
+    lang: "ru",
+    alt: [],
+    blocked: [],
+    verse: [
+      "Здравствуй, я долго здесь",
+      "Хочешь, тебя коснусь?",
+      "Если ты просто сон",
+      "Значит, я лишь проснусь",
+      "Мимо сбежала грусть",
+      "Вдоль по моей щеке",
+      "Я остаюсь, и пусть",
+      "Будет та же грусть",
+    ],
+    chorus: [
+      "Этот сон был всех короче",
+      "Буду я скучать очень",
+      "Знаю, ты ещё больше",
+      "Завтра ровно в три ночи",
+      "Расскажи мне, как поживаешь",
+      "Радуешься ли маю",
+      "С кем ты наяву таешь",
+      "Нет, не говори, знаю",
+    ],
+    search: "макsим сон поп русская поп музыка",
+    searchAlt: "максим сон поп русская поп музыка",
   },
 ];

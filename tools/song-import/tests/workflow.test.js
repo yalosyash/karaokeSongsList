@@ -44,7 +44,6 @@ test("Import, reject duplicates and resume after a failed video check", async ()
       ]),
     );
     for (const [name, data] of Object.entries({
-      meta: [],
       lyrics: {},
       embeds: [],
     }))
@@ -110,13 +109,17 @@ test("Import, reject duplicates and resume after a failed video check", async ()
     const link = "https://youtu.be/newSong0001";
     const failed = await execute([link], true);
     assert.equal(failed.code, 1, failed.output);
-    assert.match(failed.output, /--resume/);
+    assert.ok(
+      failed.output.includes(
+        'node tools/song-import/add-song.js --resume "https://www.youtube.com/watch?v=newSong0001"',
+      ),
+      failed.output,
+    );
     assert.equal((await read("content/songs.json")).length, 2);
     const resumed = await execute(["--resume", link]);
     assert.equal(resumed.code, 0, resumed.output);
     assert.match(resumed.output, /Добавлено в локальный каталог/);
     assert.equal((await read("content/songs.json")).length, 2);
-    assert.equal((await read("content/meta.json")).length, 1);
     assert.equal((await read("content/embeds.json"))[0].status, "ok");
     assert.equal((await read("data/catalog.js")).length, 2);
     const duplicate = await execute([link]);

@@ -130,9 +130,6 @@ try {
       throw new Error("Добавление отменено.");
     write("songs", songs);
     changed = true;
-    const meta = read("meta");
-    meta.push({ id, title: original || `${artist} - ${title}` });
-    write("meta", meta);
   } else {
     changed = true;
     console.log(`Продолжаю проверку: ${song.artist} — ${song.title}`);
@@ -200,7 +197,7 @@ try {
   console.error(error.message);
   if (changed)
     console.error(
-      `Локальные данные сохранены. Продолжить: npm run add-song -- --resume "${retryLink}"`,
+      `Локальные данные сохранены. Продолжить: node tools/song-import/add-song.js --resume "${retryLink}"`,
     );
   process.exitCode = 1;
 } finally {

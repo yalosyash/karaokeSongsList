@@ -1,7 +1,6 @@
 /* Собирает data/catalog.js из исходников в content/:
    songs.json  — песни (исполнитель, название, жанр, категория, язык, версии видео)
    lyrics.json — тексты по id песни
-   meta.json   — названия каналов YouTube по id видео
    embeds.json — отчёт о встраивании видео (заполняет scripts/check-embeds.js)
 
    Запуск: npm run build
@@ -27,7 +26,6 @@ const readJson = (name) =>
 
 const songs = readJson("songs.json");
 const lyrics = readJson("lyrics.json");
-const meta = readJson("meta.json");
 
 /* Отчёт о встраивании может отсутствовать — тогда считаем, что играет всё. */
 let blockedIds = new Set();
@@ -42,10 +40,6 @@ try {
   );
 }
 
-const channelById = new Map(
-  meta.filter((item) => item.author).map((item) => [item.id, item.author]),
-);
-
 const catalog = songs.map((song) => {
   const versions = [song.id, ...(song.alt || [])];
   const text = normalizeLyrics(lyrics[song.id] || {});
@@ -57,7 +51,6 @@ const catalog = songs.map((song) => {
     genre: song.genre,
     category: song.category,
     lang: song.lang,
-    channel: channelById.get(song.id) || null,
     alt: song.alt || [],
     // версии, которые автор запретил встраивать
     blocked: versions.filter((id) => blockedIds.has(id)),
@@ -73,7 +66,7 @@ const catalog = songs.map((song) => {
 });
 
 const header = `/* Сгенерировано scripts/build-catalog.js — не править вручную.
-   Источник: content/{songs,lyrics,meta,embeds}.json
+   Источник: content/{songs,lyrics,embeds}.json
    Тексты песен: LRCLIB (открытая база). */
 `;
 const body = `export const SONGS = [\n${catalog
