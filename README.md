@@ -1,6 +1,4 @@
-# 🎤 Караоке для стрима
-
-[![Tests](https://github.com/yalosyash/karaokeSongsList/actions/workflows/tests.yml/badge.svg?branch=main&event=push)](https://github.com/yalosyash/karaokeSongsList/actions/workflows/tests.yml)
+# 🎤 Караоке для стрима [![Tests](https://github.com/yalosyash/karaokeSongsList/actions/workflows/tests.yml/badge.svg?branch=main&event=push)](https://github.com/yalosyash/karaokeSongsList/actions/workflows/tests.yml)
 
 Одностраничный сайт для караоке: весь список песен, плеер и первые слова — на одном экране, без переключения вкладок.
 

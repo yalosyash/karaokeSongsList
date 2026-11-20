@@ -185,7 +185,6 @@ https://www.youtube.com/watch?v=O52enkT7pFE
 https://www.youtube.com/watch?v=Cn56cdLK73o
 https://www.youtube.com/watch?v=mlwGdezFEck
 https://www.youtube.com/watch?v=MKryPS30igo
-https://www.youtube.com/watch?v=yBaY05Vy308
 https://www.youtube.com/watch?v=4nlV2veZdyU
 
 не добавлены и не реализованы видео с вк
