@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import { runInNewContext } from "node:vm";
 import { SONGS, queryMatcher } from "../src/catalog/catalog.js";
+import { isEmbedBlocked, mergeEmbedResults } from "../scripts/lib/embeds.js";
 import { cleanLines } from "../scripts/lib/lyrics.js";
 import { norm, searchNorm, escapeHtml } from "../src/core/text.js";
 import {
@@ -9,6 +11,86 @@ import {
   isVideoBlocked,
   isBlocked,
 } from "../src/features/player/youtube.js";
+
+test("embed checker waits for playback or an error after CUED", async () => {
+  const script = await fs.readFile(
+    new URL("../scripts/embed-check/embed-check.js", import.meta.url),
+    "utf8",
+  );
+  const players = new Map();
+  const timers = new Set();
+  const window = {};
+  const PlayerState = { PLAYING: 1, CUED: 5 };
+  runInNewContext(script, {
+    window,
+    location: new URL("http://localhost"),
+    URLSearchParams,
+    document: {
+      getElementById: () => ({ appendChild() {} }),
+      createElement: () => ({}),
+    },
+    YT: {
+      PlayerState,
+      Player: class {
+        constructor(_holder, { videoId, events }) {
+          players.set(videoId, events);
+        }
+      },
+    },
+    setTimeout(callback, delay) {
+      if (delay > 0) timers.add(callback);
+      return callback;
+    },
+    clearTimeout: (timer) => timers.delete(timer),
+  });
+
+  const checked = window.checkBatch(["plays", "blocked", "cued", "silent"]);
+  for (const id of ["plays", "blocked", "cued"]) {
+    players.get(id).onStateChange({ data: PlayerState.CUED });
+  }
+  players.get("plays").onStateChange({ data: PlayerState.PLAYING });
+  players.get("blocked").onError({ data: 150 });
+  for (const expire of timers) expire();
+
+  const results = await checked;
+  assert.equal(results.plays.status, "ok");
+  assert.equal(results.blocked.status, "error");
+  assert.equal(results.blocked.error, 150);
+  assert.equal(results.cued.status, "cued");
+  assert.equal(results.silent.status, "silent");
+});
+
+test("embed reports keep confirmed results and only block errors 101 and 150", () => {
+  const previous = [
+    { id: "plays", status: "ok" },
+    { id: "blocked", status: "error", error: 150 },
+    { id: "recovered", status: "error", error: 150 },
+    { id: "restricted", status: "ok" },
+    { id: "unchecked", status: "ok" },
+  ];
+  const results = [
+    { id: "plays", status: "silent" },
+    { id: "blocked", status: "cued" },
+    { id: "recovered", status: "ok" },
+    { id: "restricted", status: "error", error: 101 },
+    { id: "new-cued", status: "cued" },
+    { id: "new-silent", status: "silent" },
+    { id: "new-error", status: "error", error: 153 },
+  ];
+  const merged = mergeEmbedResults(previous, results);
+  assert.deepEqual(merged, [
+    previous[0],
+    previous[1],
+    results[2],
+    results[3],
+    previous[4],
+    ...results.slice(4),
+  ]);
+  assert.deepEqual(
+    merged.filter(isEmbedBlocked).map(({ id }) => id),
+    ["blocked", "restricted"],
+  );
+});
 
 test("generated catalog preserves all source songs and metadata", async () => {
   const source = JSON.parse(

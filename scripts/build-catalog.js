@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 
 import { norm, searchNorm } from "../src/core/text.js";
+import { isEmbedBlocked } from "./lib/embeds.js";
 import { normalizeLyrics } from "./lib/lyrics.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -31,9 +32,7 @@ const lyrics = readJson("lyrics.json");
 let blockedIds = new Set();
 try {
   const embeds = readJson("embeds.json");
-  blockedIds = new Set(
-    embeds.filter((item) => item.status !== "ok").map((item) => item.id),
-  );
+  blockedIds = new Set(embeds.filter(isEmbedBlocked).map((item) => item.id));
 } catch {
   console.warn(
     "content/embeds.json не найден — все видео считаются встраиваемыми",

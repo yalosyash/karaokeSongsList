@@ -41,6 +41,7 @@ window.checkBatch = function checkBatch(ids) {
       const record = { id, status: "pending", error: null };
       results[id] = record;
       let settled = false;
+      let cued = false;
 
       const settle = (patch) => {
         if (settled) return;
@@ -56,7 +57,10 @@ window.checkBatch = function checkBatch(ids) {
         done();
       };
 
-      const timer = setTimeout(() => settle({ status: "silent" }), TIMEOUT_MS);
+      const timer = setTimeout(
+        () => settle({ status: cued ? "cued" : "silent" }),
+        TIMEOUT_MS,
+      );
 
       const player = new YT.Player(holder, {
         videoId: id,
@@ -80,8 +84,7 @@ window.checkBatch = function checkBatch(ids) {
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.PLAYING) settle({ status: "ok" });
-            else if (event.data === YT.PlayerState.CUED)
-              settle({ status: "cued" });
+            else if (event.data === YT.PlayerState.CUED) cued = true;
           },
           onError: (event) => settle({ status: "error", error: event.data }),
         },

@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
 
 import { SONGS } from "../data/catalog.js";
+import { mergeEmbedResults } from "./lib/embeds.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, "..");
@@ -91,16 +92,11 @@ async function saveReport(results) {
     ? JSON.parse(fs.readFileSync(reportFile, "utf8"))
     : [];
 
-  const merged = new Map(previous.map((entry) => [entry.id, entry]));
-  for (const result of results) merged.set(result.id, result);
+  const merged = mergeEmbedResults(previous, results);
 
   // как и остальные файлы в content/: два пробела, иначе каждая
   // проверка переписывает отчёт целиком
-  fs.writeFileSync(
-    reportFile,
-    JSON.stringify([...merged.values()], null, 2) + "\n",
-    "utf8",
-  );
+  fs.writeFileSync(reportFile, JSON.stringify(merged, null, 2) + "\n", "utf8");
 }
 
 function printSummary(results) {
