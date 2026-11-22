@@ -1481,5 +1481,45 @@
     "genre": "Поп",
     "category": "Русская поп-музыка",
     "lang": "ru"
+  },
+  {
+    "id": "hkc_GAtVSyo",
+    "artist": "Братья Грим",
+    "title": "Кустурица",
+    "genre": "Поп-рок",
+    "category": "Русский рок",
+    "lang": "ru"
+  },
+  {
+    "id": "Kh5M5EKkNDk",
+    "artist": "Звери",
+    "title": "Просто такая сильная любовь",
+    "genre": "Поп-рок",
+    "category": "Русский рок",
+    "lang": "ru"
+  },
+  {
+    "id": "ODE8H4SkDag",
+    "artist": "Серебро",
+    "title": "Мало тебя",
+    "genre": "Поп",
+    "category": "Русская поп-музыка",
+    "lang": "ru"
+  },
+  {
+    "id": "nuO6K-lTdwc",
+    "artist": "Звери",
+    "title": "Всё, что касается",
+    "genre": "Поп-рок",
+    "category": "Русский рок",
+    "lang": "ru"
+  },
+  {
+    "id": "DyJTl05h3NQ",
+    "artist": "Сплин",
+    "title": "Моё сердце",
+    "genre": "Рок",
+    "category": "Русский рок",
+    "lang": "ru"
   }
 ]

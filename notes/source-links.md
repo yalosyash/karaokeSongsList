@@ -186,6 +186,11 @@ https://www.youtube.com/watch?v=Cn56cdLK73o
 https://www.youtube.com/watch?v=mlwGdezFEck
 https://www.youtube.com/watch?v=MKryPS30igo
 https://www.youtube.com/watch?v=4nlV2veZdyU
+https://www.youtube.com/watch?v=hkc_GAtVSyo
+https://www.youtube.com/watch?v=Kh5M5EKkNDk
+https://www.youtube.com/watch?v=ODE8H4SkDag
+https://www.youtube.com/watch?v=nuO6K-lTdwc
+https://www.youtube.com/watch?v=DyJTl05h3NQ
 
 не добавлены и не реализованы видео с вк
 https://vkvideo.ru/video-209409497_456258404
