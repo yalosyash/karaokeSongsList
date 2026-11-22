@@ -103,11 +103,13 @@ export async function playerContractSteps(browser, base, check) {
       "контракт: отсутствие текста показано явно",
       () => !!document.querySelector("#lyricsBody .lyr-none"),
     );
-    await page.click("#btnPlay");
     await expect(
-      "контракт: полностью заблокированное видео не загружается и само не открывает вкладку",
+      "контракт: после выбора песни сразу видна кнопка YouTube, вкладка не открывается",
       () =>
         !document.getElementById("videoBlocked").hidden &&
+        document.getElementById("openYtBtn").getClientRects().length > 0 &&
+        document.getElementById("bigPlay").hidden &&
+        document.getElementById("btnPlay").hidden &&
         !document.getElementById("ytFrame").hasAttribute("src") &&
         opened.length === 0,
     );
@@ -127,26 +129,29 @@ export async function playerContractSteps(browser, base, check) {
           .textContent === "Только припев",
     );
     await page.click("#btnAlt");
-    await page.click("#btnPlay");
     await expect(
-      "контракт: версия 2/3 остаётся выбранной и открывается отдельно",
+      "контракт: версия 2/3 сразу предлагает YouTube и другую версию",
       () =>
         document.getElementById("altLabel").textContent === "Версия 2/3" &&
         !document.getElementById("videoBlocked").hidden &&
+        !document.getElementById("blockedAltBtn").hidden &&
+        document.getElementById("bigPlay").hidden &&
         !document.getElementById("ytFrame").hasAttribute("src") &&
+        opened.length === 1,
+    );
+    await page.click("#openYtBtn");
+    await expect(
+      "контракт: кнопка YouTube открывает выбранную версию 2/3",
+      () =>
         opened.length === 2 &&
         opened[1][0] === "https://www.youtube.com/watch?v=blocked0002",
-    );
-    await page.click("#btnPlay");
-    await expect(
-      "контракт: повторный запуск заблокированной версии не плодит вкладки",
-      () => opened.length === 2,
     );
     await page.click("#blockedAltBtn");
     await expect(
       "контракт: возврат с заблокированной версии выбирает рабочую",
       () =>
         document.getElementById("altLabel").textContent === "Версия 3/3" &&
+        !document.getElementById("btnPlay").hidden &&
         !document.getElementById("ytFrame").hasAttribute("src"),
     );
     // The button advances to the next version, so 2/3 -> 3/3. Complete the
@@ -165,7 +170,8 @@ export async function playerContractSteps(browser, base, check) {
       () =>
         !document.getElementById("ytFrame").hasAttribute("src") &&
         !document.querySelector(".row.playing") &&
-        !document.getElementById("videoBlocked").hidden,
+        !document.getElementById("videoBlocked").hidden &&
+        opened.length === 2,
     );
     await page.click("#btnAlt");
     await page.click("#btnPlay");

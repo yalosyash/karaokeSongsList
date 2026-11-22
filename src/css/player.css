@@ -290,18 +290,6 @@ html::-webkit-scrollbar-button {
   background: radial-gradient(circle, rgba(255, 96, 96, 0.24), transparent 68%);
   filter: blur(30px);
 }
-.vb-ico {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--line-2);
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--text);
-}
 .vb-title {
   position: relative;
   font-size: 16px;

@@ -1078,7 +1078,7 @@ async function playerLayoutSteps(page) {
         if (state === "blocked") {
           blocked.scrollTop = 0;
           const first = blocked
-            .querySelector(".vb-ico")
+            .querySelector(".vb-title")
             .getBoundingClientRect();
           const area = blocked.getBoundingClientRect();
           blocked.scrollTop = blocked.scrollHeight;

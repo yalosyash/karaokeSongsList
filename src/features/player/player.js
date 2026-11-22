@@ -19,9 +19,6 @@ import {
 /* Какое видео сейчас лежит в iframe и какая версия выбрана для песни. */
 let loadedId = null;
 let altIndex = 0;
-/* Для какой версии уже показано «играет только на YouTube»:
-   повторный ▶ не должен открывать ещё одну вкладку. */
-let blockedVideoId = null;
 
 const currentSong = () => byId.get(state.currentId);
 const activeVideoId = (song) => versionsOf(song)[altIndex] || song.id;
@@ -30,22 +27,25 @@ const currentVideoId = () => {
   return song ? activeVideoId(song) : null;
 };
 
-/** Версии, которые разрешено смотреть прямо на странице. */
-const embeddableVersions = (song) =>
-  versionsOf(song).filter((id) => !isVideoBlocked(song, id));
+const playsOnlyOnYouTube = (song, videoId) =>
+  isBlocked(song) || isVideoBlocked(song, videoId);
 
 function setVersionLabel(song) {
   const versions = versionsOf(song);
   el.btnAlt.hidden = versions.length < 2;
   if (versions.length > 1) {
     el.altLabel.textContent = `Версия ${altIndex + 1}/${versions.length}`;
-    el.btnAlt.dataset.tooltip = isVideoBlocked(song, versions[altIndex])
+    el.btnAlt.dataset.tooltip = playsOnlyOnYouTube(song, versions[altIndex])
       ? "Эта версия играет только на YouTube — переключить на другую"
       : "Другая версия караоке";
   }
 }
 
 function syncPlayUi() {
+  const youtubeOnly = !el.videoBlocked.hidden;
+  for (const button of [el.btnPlay, el.btnRestart, el.btnStop]) {
+    button.hidden = youtubeOnly;
+  }
   el.btnPlay.classList.toggle("is-playing", state.playing);
   el.btnPlayLabel.textContent = state.playing ? "Пауза" : "Петь";
   updatePlayingRows();
@@ -53,7 +53,6 @@ function syncPlayUi() {
 
 function loadVideo(videoId, autoplay) {
   loadedId = videoId;
-  blockedVideoId = null;
   el.videoEmpty.hidden = true;
   el.videoBlocked.hidden = true;
   el.videoShell.classList.remove("is-blocked");
@@ -69,47 +68,37 @@ function unloadFrame() {
   el.frame.removeAttribute("src");
 }
 
-/** Заглушка вместо чёрного прямоугольника с ошибкой YouTube 150. */
-function showBlocked(song, videoId, nonEmbeddable = false) {
-  loadedId = null;
+function showBlocked(song, videoId) {
   state.playing = false;
-  el.frame.hidden = true;
-  el.frame.removeAttribute("src");
+  unloadFrame();
   el.videoEmpty.hidden = true;
   el.bigPlay.hidden = true;
   el.videoBlocked.hidden = false;
   el.videoShell.classList.add("is-blocked");
-  if (song) {
-    const versions = versionsOf(song);
-    const version = versions.indexOf(videoId ?? activeVideoId(song));
-    const label =
-      version > -1 ? `Версия ${version + 1}/${versions.length}` : "Это видео";
-    const hasOther = !isBlocked(song) && embeddableVersions(song).length > 0;
-    const tail = nonEmbeddable
-      ? "Мы открыли её в новой вкладке."
-      : "Эта версия играет только на YouTube.";
-    el.blockedSub.textContent = hasOther
-      ? `${label} играет только на YouTube: автор запретил встраивание. ${tail}` +
-        " Или переключитесь на другую версию."
-      : "Автор видео запретил встраивание — здесь оно не проиграется. Откроем на YouTube.";
-    el.blockedAltBtn.hidden = !hasOther;
-  } else {
-    el.blockedAltBtn.hidden = true;
-  }
+  const versions = versionsOf(song);
+  const hasOther = versions.some((id) => !playsOnlyOnYouTube(song, id));
+  el.blockedSub.textContent = hasOther
+    ? `Версия ${versions.indexOf(videoId) + 1}/${versions.length} доступна только на YouTube. Можно выбрать другую версию.`
+    : "Автор видео запретил встраивание.";
+  el.blockedAltBtn.hidden = !hasOther;
   syncPlayUi();
 }
 
-function showIdleHint(song) {
-  el.emptyTitle.textContent = song.title;
-  if (isBlocked(song)) {
-    el.emptySub.textContent =
-      "Это видео играет только на YouTube — нажмите «Открыть на YouTube»";
-  } else if (isVideoBlocked(song, activeVideoId(song))) {
-    // выбранная версия не встраивается — не обещаем, что ▶ её включит
-    el.emptySub.textContent = `Версия ${altIndex + 1} играет только на YouTube — ▶ откроет её там`;
-  } else {
-    el.emptySub.textContent = "Нажмите ▶ — и начнём петь";
+function showIdle(song) {
+  const videoId = activeVideoId(song);
+  if (playsOnlyOnYouTube(song, videoId)) {
+    showBlocked(song, videoId);
+    return;
   }
+  state.playing = false;
+  unloadFrame();
+  el.videoBlocked.hidden = true;
+  el.videoShell.classList.remove("is-blocked");
+  el.videoEmpty.hidden = false;
+  el.bigPlay.hidden = false;
+  el.emptyTitle.textContent = song.title;
+  el.emptySub.textContent = "Нажмите ▶ — и начнём петь";
+  syncPlayUi();
 }
 
 export function selectSong(id, options = {}) {
@@ -133,10 +122,7 @@ export function selectSong(id, options = {}) {
     button.disabled = false;
   }
 
-  if (changed) {
-    altIndex = 0;
-    blockedVideoId = null;
-  }
+  if (changed) altIndex = 0;
   setVersionLabel(song);
   renderLyrics(song);
   updatePlayingRows();
@@ -145,15 +131,7 @@ export function selectSong(id, options = {}) {
     if (options.autoplay) {
       play();
     } else {
-      // только выбор: видео ещё не нужно, песню можно спокойно просмотреть
-      state.playing = false;
-      unloadFrame();
-      el.bigPlay.hidden = false;
-      el.videoEmpty.hidden = false;
-      el.videoBlocked.hidden = true;
-      el.videoShell.classList.remove("is-blocked");
-      showIdleHint(song);
-      syncPlayUi();
+      showIdle(song);
     }
   } else if (options.autoplay && !state.playing) {
     // та же песня на паузе — просто продолжаем
@@ -167,22 +145,11 @@ export function play() {
   const song = currentSong();
   if (!song) return;
 
-  if (isBlocked(song)) {
-    showBlocked(song);
-    return;
-  }
-
   const videoId = activeVideoId(song);
-
-  if (isVideoBlocked(song, videoId)) {
-    // не подменяем выбор молча: эта версия живёт только на YouTube
-    const alreadyOpen = blockedVideoId === videoId;
-    blockedVideoId = videoId;
-    if (!alreadyOpen) openOnYouTube(videoId);
-    showBlocked(song, videoId, !alreadyOpen);
+  if (playsOnlyOnYouTube(song, videoId)) {
+    showBlocked(song, videoId);
     return;
   }
-  blockedVideoId = null;
 
   if (loadedId === videoId && !el.frame.hidden) {
     // видео уже загружено — продолжаем, а не начинаем с 0:00
@@ -206,28 +173,16 @@ export function pause() {
 }
 
 export function stop() {
-  state.playing = false;
-  unloadFrame();
-  el.videoBlocked.hidden = true;
-  el.videoShell.classList.remove("is-blocked");
-  el.videoEmpty.hidden = false;
-  el.bigPlay.hidden = false;
   const song = currentSong();
-  if (song) showIdleHint(song);
-  syncPlayUi();
+  if (song) showIdle(song);
 }
 
 export function restart() {
   const song = currentSong();
   if (!song) return;
 
-  if (isBlocked(song)) {
-    showBlocked(song);
-    return;
-  }
-
-  const videoId = currentVideoId();
-  if (isVideoBlocked(song, videoId)) {
+  const videoId = activeVideoId(song);
+  if (playsOnlyOnYouTube(song, videoId)) {
     showBlocked(song, videoId);
     return;
   }
@@ -249,26 +204,13 @@ export function nextVersion() {
   if (count < 2) return;
 
   altIndex = (altIndex + 1) % count;
-  blockedVideoId = null;
   setVersionLabel(song);
 
-  const wasPlaying = state.playing;
-  loadedId = null;
-  el.frame.removeAttribute("src");
-
-  if (wasPlaying) {
+  if (state.playing) {
     play();
-    return;
+  } else {
+    showIdle(song);
   }
-
-  state.playing = false;
-  el.frame.hidden = true;
-  el.videoEmpty.hidden = false;
-  el.videoBlocked.hidden = true;
-  el.videoShell.classList.remove("is-blocked");
-  showIdleHint(song);
-  el.bigPlay.hidden = false;
-  syncPlayUi();
 }
 
 export const openCurrentOnYouTube = () => {
