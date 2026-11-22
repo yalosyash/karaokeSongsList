@@ -1,10 +1,10 @@
 /* Офлайн-кеш: список песен и тексты должны открываться мгновенно, даже без сети.
    Само видео всё равно приходит с YouTube.
 
-   Стратегия — network-first с запасным кешем. Cache-first отдавал бы старые
-   HTML/JS/CSS после обновления: изменения «не появлялись» до ручной очистки кеша. */
+   Стратегия — network-first с запасным кешем. При наличии сети браузер
+   проверяет актуальность файлов в своём HTTP-кеше. */
 
-const CACHE = "karaoke-v10";
+const CACHE = "karaoke-v11";
 
 const ASSETS = [
   "./",
@@ -39,11 +39,27 @@ const ASSETS = [
   "./src/css/responsive.css",
 ];
 
+function revalidateOnNextRequest(response) {
+  if (!response.ok || response.redirected) return response;
+  // Иначе вкладка может взять свежую по max-age копию из памяти, минуя воркер.
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-cache");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      .then((cache) =>
+        cache.addAll(
+          ASSETS.map((asset) => new Request(asset, { cache: "no-cache" })),
+        ),
+      )
       .then(() => self.skipWaiting()),
   );
 });
@@ -73,16 +89,25 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== location.origin) return;
 
   event.respondWith(
-    fetch(request)
+    fetch(request, { cache: "no-cache" })
       .then((response) => {
-        if (response && response.status === 200) {
+        if (response.status === 200) {
           const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
+          event.waitUntil(
+            caches
+              .open(CACHE)
+              .then((cache) => cache.put(request, copy))
+              .catch(() => {}),
+          );
         }
-        return response;
+        return revalidateOnNextRequest(response);
       })
       .catch(() =>
-        caches.match(request).then((hit) => hit || Response.error()),
+        caches
+          .match(request)
+          .then((hit) =>
+            hit ? revalidateOnNextRequest(hit) : Response.error(),
+          ),
       ),
   );
 });

@@ -18,6 +18,7 @@ export async function releaseUpgradeSteps(browser, check) {
     ...song,
     title: `${song.title} [previous release]`,
   }));
+  let catalog = oldSongs;
   const types = {
     ".js": "text/javascript",
     ".css": "text/css",
@@ -49,12 +50,12 @@ export async function releaseUpgradeSteps(browser, check) {
         );
         return;
       }
-      if (pathname === "/data/catalog.js" && previous) {
+      if (pathname === "/data/catalog.js") {
         res.writeHead(200, {
           "content-type": "text/javascript",
-          "cache-control": "no-store",
+          "cache-control": "max-age=600",
         });
-        res.end(`export const SONGS = ${JSON.stringify(oldSongs)};`);
+        res.end(`export const SONGS = ${JSON.stringify(catalog)};`);
         return;
       }
       const file = path.resolve(
@@ -108,6 +109,7 @@ export async function releaseUpgradeSteps(browser, check) {
       );
     }, neighborCache);
     previous = false;
+    catalog = SONGS;
     networkAvailable = true;
     await page.setOfflineMode(false);
     await page.evaluate(async () => {
@@ -138,6 +140,16 @@ export async function releaseUpgradeSteps(browser, check) {
         return (await response?.text()) === "neighbor offline";
       }, neighborCache),
     );
+    check(
+      "новый service worker сохраняет свежий каталог при установке",
+      await page.evaluate(async (cacheName) => {
+        const response = await caches.match("/data/catalog.js", { cacheName });
+        return (
+          response?.ok &&
+          !(await response.text()).includes("[previous release]")
+        );
+      }, currentCache),
+    );
     await ready(page, base);
     networkAvailable = false;
     await page.setOfflineMode(true);
@@ -156,6 +168,33 @@ export async function releaseUpgradeSteps(browser, check) {
     check(
       "после обновления офлайн работает выбор песни и текст",
       await page.$eval("#lyricsBody", (node) => !!node.textContent.trim()),
+    );
+
+    // A catalog-only deploy leaves sw.js unchanged.
+    const updatedSong = {
+      ...SONGS[0],
+      title: `${SONGS[0].title} [catalog update]`,
+    };
+    catalog = [updatedSong, ...SONGS.slice(1)];
+    networkAvailable = true;
+    await page.setOfflineMode(false);
+    await ready(page, base);
+    const hasUpdatedSong = () =>
+      page.$eval(
+        `.row[data-id="${updatedSong.id}"] .row-title`,
+        (node, title) => node.textContent === title,
+        updatedSong.title,
+      );
+    check(
+      "каталог обновляется при открытии без сброса HTTP-кеша",
+      await hasUpdatedSong(),
+    );
+    networkAvailable = false;
+    await page.setOfflineMode(true);
+    await ready(page, base);
+    check(
+      "новые данные каталога сохраняются для работы офлайн",
+      await hasUpdatedSong(),
     );
     check(
       "обновление service worker без ошибок JavaScript",
