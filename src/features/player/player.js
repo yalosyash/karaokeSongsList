@@ -234,16 +234,10 @@ export function restart() {
 
   if (loadedId === videoId && !el.frame.hidden) {
     sendPlayerCommand(el.frame, "seekTo", [0, true]);
-    state.playing = true;
-    el.bigPlay.hidden = true;
-    syncPlayUi();
-    return;
+    if (state.playing) return;
   }
 
-  state.playing = true;
-  el.bigPlay.hidden = true;
-  loadVideo(videoId, true);
-  syncPlayUi();
+  play();
 }
 
 /** Переключение на другую версию караоке, сохраняя состояние воспроизведения. */

@@ -249,18 +249,29 @@ export async function scenarioSteps(browser, base, check) {
     await click(".row.active");
     await expect(
       "клик по играющей строке ставит на паузу",
-      () => commands.at(-1)?.func === "pauseVideo",
+      () =>
+        commands.at(-1)?.func === "pauseVideo" &&
+        document.getElementById("btnPlayLabel").textContent === "Петь",
     );
-    for (const action of [() => key("0"), () => click("#btnRestart")]) {
-      await action();
-      await expect(
-        "перезапуск перематывает к началу",
-        () =>
-          commands.at(-1)?.func === "seekTo" &&
-          commands.at(-1).args[0] === 0 &&
-          !!document.querySelector(".row.playing"),
-      );
-    }
+    await click("#btnRestart");
+    await expect(
+      "«Сначала» после паузы перематывает к началу и запускает видео",
+      () =>
+        commands.at(-3)?.func === "pauseVideo" &&
+        commands.at(-2)?.func === "seekTo" &&
+        commands.at(-2).args[0] === 0 &&
+        commands.at(-1)?.func === "playVideo" &&
+        document.getElementById("btnPlayLabel").textContent === "Пауза" &&
+        !!document.querySelector(".row.playing"),
+    );
+    await key("0");
+    await expect(
+      "перезапуск во время воспроизведения перематывает к началу",
+      () =>
+        commands.at(-1)?.func === "seekTo" &&
+        commands.at(-1).args[0] === 0 &&
+        !!document.querySelector(".row.playing"),
+    );
     await key("y");
     await click("#btnYt");
     await expect(
