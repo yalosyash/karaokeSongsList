@@ -176,10 +176,9 @@ export async function scenarioSteps(browser, base, check) {
     await page.evaluate(() => localStorage.clear());
     await ready();
     await search("__нет_такой_песни__");
-    await key("r");
-    await page.keyboard.press("ArrowDown");
+    await click("#randomBtn");
     await expect(
-      "пустой результат: случайный выбор и стрелки безопасны",
+      "случайный выбор безопасен при пустом списке",
       () =>
         !document.querySelector(".row.active") &&
         !document.getElementById("listEmpty").hidden,
@@ -205,34 +204,52 @@ export async function scenarioSteps(browser, base, check) {
     await search(soloQuery);
     await page.keyboard.press("Enter");
     await expect(
-      "Enter в поиске выбирает без запуска",
+      "Enter в поиске оставляет фокус и не выбирает песню",
       () =>
-        !!document.querySelector(".row.active") &&
+        document.activeElement.id === "search" &&
+        !document.querySelector(".row.active") &&
         !document.getElementById("ytFrame").getAttribute("src"),
     );
-    await key("ArrowDown");
-    await key("ArrowUp");
-    await expect(
-      "стрелки не выходят за границы одного результата",
-      () =>
-        document.querySelectorAll(".row").length === 1 &&
-        !!document.querySelector(".row.active"),
-    );
-    await key("r");
+    await click("#randomBtn");
     await expect(
       "случайный выбор из одного результата сохраняет песню",
       (title) => document.getElementById("nowTitle").textContent === title,
       solo.title,
     );
-    await key("Enter");
-    // Commands must cross the real iframe boundary and be received by the external double.
-    await page.waitForFunction(() => window.playerReady);
     await page.evaluate(() => {
-      window.commands = [];
       window.opened = [];
       window.open = (...args) => window.opened.push(args);
     });
-    await key("Space");
+    for (const shortcut of [
+      "/",
+      "ArrowUp",
+      "ArrowDown",
+      "Enter",
+      "Space",
+      "f",
+      "r",
+      "y",
+      "0",
+    ]) {
+      await key(shortcut);
+      check(
+        `${shortcut} вне фокуса кнопок не запускает команды сайта`,
+        await page.evaluate(
+          (id) =>
+            document.activeElement === document.body &&
+            document.querySelector(".row.active")?.dataset.id === id &&
+            document.getElementById("lyricsOverlay").hidden &&
+            !document.getElementById("ytFrame").hasAttribute("src") &&
+            window.opened.length === 0,
+          solo.id,
+        ),
+      );
+    }
+    await click("#btnPlay");
+    // Commands must cross the real iframe boundary and be received by the external double.
+    await page.waitForFunction(() => window.playerReady);
+    await page.focus("#btnPlay");
+    await page.keyboard.press("Space");
     await expect(
       "Space ставит на паузу и отправляет команду YouTube",
       () =>
@@ -264,7 +281,7 @@ export async function scenarioSteps(browser, base, check) {
         document.getElementById("btnPlayLabel").textContent === "Пауза" &&
         !!document.querySelector(".row.playing"),
     );
-    await key("0");
+    await click("#btnRestart");
     await expect(
       "перезапуск во время воспроизведения перематывает к началу",
       () =>
@@ -272,12 +289,11 @@ export async function scenarioSteps(browser, base, check) {
         commands.at(-1).args[0] === 0 &&
         !!document.querySelector(".row.playing"),
     );
-    await key("y");
     await click("#btnYt");
     await expect(
-      "Y и кнопка открывают выбранное видео безопасной вкладкой",
+      "кнопка YouTube открывает выбранное видео безопасной вкладкой",
       () =>
-        opened.length === 2 &&
+        opened.length === 1 &&
         opened.every(
           ([url, target, features]) =>
             url.endsWith(document.querySelector(".row.active").dataset.id) &&
@@ -285,31 +301,31 @@ export async function scenarioSteps(browser, base, check) {
             features === "noopener",
         ),
     );
-    await key("f");
-    await key("Escape");
+    await page.focus("#btnFullLyrics");
+    await page.keyboard.press("Space");
     await expect(
-      "Escape сначала закрывает текст, сохраняя воспроизведение",
+      "пробел на кнопке полного экрана открывает текст без паузы",
       () =>
-        document.getElementById("lyricsOverlay").hidden &&
+        !document.getElementById("lyricsOverlay").hidden &&
+        document.activeElement.id === "overlayClose" &&
         !!document.querySelector(".row.playing"),
     );
-    await search("rfy0");
+    await page.keyboard.press("Enter");
     await expect(
-      "горячие клавиши не срабатывают при вводе поиска",
+      "Enter на кнопке закрытия закрывает текст и возвращает фокус",
       () =>
         document.getElementById("lyricsOverlay").hidden &&
-        !!document.getElementById("ytFrame").getAttribute("src"),
-    );
-    await page.keyboard.press("Escape");
-    await expect(
-      "Escape в поиске только снимает фокус",
-      () =>
-        document.activeElement.id !== "search" &&
+        document.activeElement.id === "btnFullLyrics" &&
         !!document.getElementById("ytFrame").getAttribute("src"),
     );
     await key("Escape");
     await expect(
-      "второй Escape полностью выгружает видео",
+      "Escape вне плеера оставляет видео включённым",
+      () => !!document.querySelector(".row.playing"),
+    );
+    await click("#btnStop");
+    await expect(
+      "кнопка «Остановить» полностью выгружает видео",
       () =>
         document.getElementById("ytFrame").hidden &&
         !document.getElementById("ytFrame").hasAttribute("src"),
@@ -323,7 +339,7 @@ export async function scenarioSteps(browser, base, check) {
     });
     await click("#randomBtn");
     const selected = await page.$eval(".row.active", (node) => node.dataset.id);
-    await key("r");
+    await click("#randomBtn");
     await expect(
       "случайная песня не повторяется и не запускается",
       (id) =>

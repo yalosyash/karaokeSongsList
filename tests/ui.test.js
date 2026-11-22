@@ -176,10 +176,6 @@ function installHelpers() {
       node.dispatchEvent(new MouseEvent("click", { bubbles: true })),
     dblclick: (node) =>
       node.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })),
-    key: (key) =>
-      document.dispatchEvent(
-        new KeyboardEvent("keydown", { key, bubbles: true }),
-      ),
     typeSearch: (value) => {
       const input = document.getElementById("search");
       input.value = value;
@@ -850,7 +846,8 @@ async function steps(page) {
   );
 
   /* ── запуск по явному действию ── */
-  await page.evaluate(() => T.key("Enter"));
+  await page.focus("#btnPlay");
+  await page.keyboard.press("Enter");
   await page.waitForFunction(() => !document.getElementById("ytFrame").hidden);
 
   const playingFrame = await frameState(page);
@@ -923,7 +920,8 @@ async function steps(page) {
   );
 
   /* ── большой текст ── */
-  await page.evaluate(() => T.click(document.getElementById("btnFullLyrics")));
+  await page.focus("#btnFullLyrics");
+  await page.keyboard.press("Enter");
   check(
     "текст на весь экран",
     await page.evaluate(
@@ -957,30 +955,9 @@ async function steps(page) {
   );
   check("размер текста меняется", before !== after, `${before} → ${after}`);
 
-  /* ── клавиатура ── */
-  // Start away from the lower boundary; catalog order may change in releases.
-  await page.click(".row");
-  const beforeArrow = await page.$eval(".row.active", (n) => n.dataset.id);
-  await page.evaluate(() => T.key("ArrowDown"));
+  await page.click("#btnStop");
   check(
-    "стрелка вниз переключает песню",
-    (await page.$eval(".row.active", (n) => n.dataset.id)) !== beforeArrow,
-  );
-  const afterArrow = await frameState(page);
-  check("стрелка не запускает видео", afterArrow.hidden && !afterArrow.src);
-
-  await page.evaluate(() => T.key("/"));
-  check(
-    "слэш фокусирует поиск",
-    await page.evaluate(
-      () => document.activeElement === document.getElementById("search"),
-    ),
-  );
-
-  await page.evaluate(() => document.activeElement.blur());
-  await page.evaluate(() => T.key("Escape"));
-  check(
-    "Esc останавливает",
+    "кнопка останавливает видео",
     await page.evaluate(
       () => document.getElementById("ytFrame").hidden === true,
     ),

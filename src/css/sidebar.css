@@ -64,7 +64,7 @@
 }
 #search {
   width: 100%;
-  padding: 11px 62px 11px 38px;
+  padding: 11px 40px 11px 38px;
   border-radius: 13px;
   border: 1px solid var(--line);
   background: var(--control-bg);
@@ -85,27 +85,6 @@
 }
 #search::-webkit-search-cancel-button {
   display: none;
-}
-.search-kbd {
-  position: absolute;
-  right: 12px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted-2);
-  border: 1px solid var(--line-2);
-  border-radius: 6px;
-  padding: 1px 6px;
-  pointer-events: none;
-}
-#search:focus ~ .search-kbd {
-  opacity: 0;
-}
-#search:not(:placeholder-shown) ~ .search-kbd {
-  opacity: 0;
-}
-.search-wrap:has(.search-clear:not([hidden])) .search-kbd {
-  opacity: 0;
 }
 .search-clear {
   position: absolute;

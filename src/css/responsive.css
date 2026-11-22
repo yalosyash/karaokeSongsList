@@ -81,9 +81,6 @@
   .primary-btn {
     height: 38px;
   }
-  .hotkeys {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

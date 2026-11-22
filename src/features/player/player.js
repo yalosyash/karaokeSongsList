@@ -103,7 +103,7 @@ function showIdleHint(song) {
   el.emptyTitle.textContent = song.title;
   if (isBlocked(song)) {
     el.emptySub.textContent =
-      "Это видео играет только на YouTube — Enter откроет его";
+      "Это видео играет только на YouTube — нажмите «Открыть на YouTube»";
   } else if (isVideoBlocked(song, activeVideoId(song))) {
     // выбранная версия не встраивается — не обещаем, что ▶ её включит
     el.emptySub.textContent = `Версия ${altIndex + 1} играет только на YouTube — ▶ откроет её там`;

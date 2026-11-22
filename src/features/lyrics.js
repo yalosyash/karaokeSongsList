@@ -52,19 +52,19 @@ export function renderLyrics(song) {
   el.overlayInner.scrollTop = 0;
 }
 
-export function toggleOverlay(force) {
-  const show = force !== undefined ? force : el.overlay.hidden;
+function setOverlayOpen(show) {
   el.overlay.hidden = !show;
   ui.overlayOpen = show;
   if (show) el.overlayInner.scrollTop = 0;
+  (show ? el.overlayClose : el.btnFull).focus({ preventScroll: true });
 }
 
 export function wireLyricsControls() {
-  el.overlayClose.addEventListener("click", () => toggleOverlay(false));
+  el.overlayClose.addEventListener("click", () => setOverlayOpen(false));
   el.overlay.addEventListener("click", (event) => {
-    if (event.target === el.overlay) toggleOverlay(false);
+    if (event.target === el.overlay) setOverlayOpen(false);
   });
-  el.btnFull.addEventListener("click", () => toggleOverlay());
+  el.btnFull.addEventListener("click", () => setOverlayOpen(true));
   el.fontPlus.addEventListener("click", () => changeLyricScale(0.1));
   el.fontMinus.addEventListener("click", () => changeLyricScale(-0.1));
 }

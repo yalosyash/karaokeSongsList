@@ -103,6 +103,3 @@ export function scrollToRow(id) {
   const row = el.list.querySelector(`.row[data-id="${CSS.escape(id)}"]`);
   if (row) row.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
-
-/** Строки в том порядке, в котором их видит пользователь. */
-export const visibleRows = () => [...el.list.querySelectorAll(".row")];

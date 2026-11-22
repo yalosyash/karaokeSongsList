@@ -12,7 +12,6 @@ import { SONGS, byId } from "./catalog/catalog.js";
 import { renderChips, renderGenreOptions } from "./features/filters.js";
 import { renderList, scrollToRow } from "./features/list.js";
 import { wireNowBar, wireList, wireToolbar } from "./features/controls.js";
-import { wireKeyboard } from "./features/keyboard.js";
 import { wireLyricsControls } from "./features/lyrics.js";
 import { selectSong } from "./features/player/player.js";
 
@@ -38,7 +37,6 @@ function init() {
   wireTooltips();
   wireNowBar();
   wireLyricsControls();
-  wireKeyboard();
 
   restoreLastSong();
 
