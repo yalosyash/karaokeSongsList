@@ -10,7 +10,8 @@ import { root, preparePage, ready, diagnostics } from "./support.js";
 export async function releaseUpgradeSteps(browser, check) {
   let previous = true;
   let networkAvailable = true;
-  const previousCache = "karaoke-test-previous";
+  const previousCache = "karaoke-v7";
+  const neighborCache = "karaoke-videos";
   const currentWorker = await fs.readFile(path.join(root, "sw.js"), "utf8");
   const currentCache = currentWorker.match(/const CACHE = "([^"]+)"/)[1];
   const oldSongs = SONGS.map((song) => ({
@@ -99,6 +100,13 @@ export async function releaseUpgradeSteps(browser, check) {
       "обновление: предыдущий каталог действительно доступен из офлайн-кеша",
       stale,
     );
+    await page.evaluate(async (name) => {
+      const cache = await caches.open(name);
+      await cache.put(
+        "/neighbor/offline.html",
+        new Response("neighbor offline"),
+      );
+    }, neighborCache);
     previous = false;
     networkAvailable = true;
     await page.setOfflineMode(false);
@@ -120,6 +128,15 @@ export async function releaseUpgradeSteps(browser, check) {
       { timeout: 15000 },
       currentCache,
       previousCache,
+    );
+    check(
+      "после обновления соседнее приложение сохраняет свой офлайн-кеш",
+      await page.evaluate(async (name) => {
+        const response = await caches.match("/neighbor/offline.html", {
+          cacheName: name,
+        });
+        return (await response?.text()) === "neighbor offline";
+      }, neighborCache),
     );
     await ready(page, base);
     networkAvailable = false;

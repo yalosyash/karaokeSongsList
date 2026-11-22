@@ -4,7 +4,7 @@
    Стратегия — network-first с запасным кешем. Cache-first отдавал бы старые
    HTML/JS/CSS после обновления: изменения «не появлялись» до ручной очистки кеша. */
 
-const CACHE = "karaoke-v8";
+const CACHE = "karaoke-v9";
 
 const ASSETS = [
   "./",
@@ -55,7 +55,9 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)),
+          keys
+            .filter((key) => /^karaoke-v\d+$/.test(key) && key !== CACHE)
+            .map((key) => caches.delete(key)),
         ),
       )
       .then(() => self.clients.claim()),
