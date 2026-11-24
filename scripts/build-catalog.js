@@ -13,7 +13,6 @@ import prettier from "prettier";
 
 import { norm, searchNorm } from "../src/core/text.js";
 import { isEmbedBlocked } from "./lib/embeds.js";
-import { normalizeLyrics } from "./lib/lyrics.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, "..");
@@ -27,6 +26,15 @@ const readJson = (name) =>
 
 const songs = readJson("songs.json");
 const lyrics = readJson("lyrics.json");
+if (process.env.SONG_IMPORT_APPROVED_CUES) {
+  const { id, cues } = JSON.parse(process.env.SONG_IMPORT_APPROVED_CUES);
+  if (JSON.stringify(lyrics[id]) !== JSON.stringify(cues)) {
+    console.error(
+      "Подсказка изменилась после сверки. Повторите запуск с --resume.",
+    );
+    process.exit(1);
+  }
+}
 
 /* Отчёт о встраивании может отсутствовать — тогда считаем, что играет всё. */
 let blockedIds = new Set();
@@ -41,7 +49,7 @@ try {
 
 const catalog = songs.map((song) => {
   const versions = [song.id, ...(song.alt || [])];
-  const text = normalizeLyrics(lyrics[song.id] || {});
+  const text = lyrics[song.id] || {};
 
   return {
     id: song.id,
@@ -55,8 +63,8 @@ const catalog = songs.map((song) => {
     blocked: versions.filter((id) => blockedIds.has(id)),
     // ни одна версия не встраивается -> только ссылка на YouTube
     noembed: versions.every((id) => blockedIds.has(id)) ? true : undefined,
-    verse: text.verse,
-    chorus: text.chorus,
+    verse: text.verse?.length ? text.verse : null,
+    chorus: text.chorus?.length ? text.chorus : null,
     search: norm(`${song.artist} ${song.title} ${song.genre} ${song.category}`),
     searchAlt: searchNorm(
       `${song.artist} ${song.title} ${song.genre} ${song.category}`,

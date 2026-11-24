@@ -1,15 +1,11 @@
-/* Заполняет content/lyrics.json текстами из открытой базы LRCLIB.
-   Работает только по песням, у которых ещё нет куплета, — уже найденные
-   тексты не трогает (их правки живут прямо в content/lyrics.json).
-
-   Запуск: npm run fetch-lyrics -- [--force] [--only id1,id2]
-   После загрузки: npm run build */
+/* Предлагает подсказки из LRCLIB. --review сохраняет только подтверждённые варианты. */
 
 import fs from "node:fs";
 import path from "node:path";
+import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
-import { buildLyrics, normalizeLyrics } from "./lib/lyrics.js";
+import { buildLyrics } from "./lib/lyrics.js";
 import { norm } from "../src/core/text.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -23,10 +19,51 @@ const readJson = (file) =>
 
 const args = process.argv.slice(2);
 const force = args.includes("--force");
+const review = args.includes("--review");
+const reportSaved = args.includes("--report-saved");
 const onlyIndex = args.indexOf("--only");
-const only = onlyIndex > -1 ? args[onlyIndex + 1].split(",") : null;
+const only = onlyIndex > -1 ? args[onlyIndex + 1]?.split(",") : null;
+const videoIndex = args.indexOf("--video");
+const reviewVideo = videoIndex > -1 ? args[videoIndex + 1] : undefined;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function saveCues(id, previous, cues) {
+  const lock = lyricsFile + ".lock";
+  const deadline = Date.now() + 5000;
+  while (true) {
+    try {
+      fs.mkdirSync(lock);
+      break;
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+      if (Date.now() >= deadline) {
+        throw new Error(
+          `Файл подсказок заблокирован (${lock}). Если загрузчики завершены, удалите папку блокировки и повторите проверку.`,
+        );
+      }
+      await sleep(50);
+    }
+  }
+
+  const temporary = path.join(lock, "lyrics.json");
+  try {
+    const current = readJson(lyricsFile);
+    if (JSON.stringify(current[id]) !== JSON.stringify(previous)) return false;
+
+    current[id] = cues;
+    fs.writeFileSync(
+      temporary,
+      JSON.stringify(current, null, 2) + "\n",
+      "utf8",
+    );
+    fs.renameSync(temporary, lyricsFile);
+    return true;
+  } finally {
+    fs.rmSync(temporary, { force: true });
+    fs.rmdirSync(lock);
+  }
+}
 
 async function search(query, tries = 4) {
   for (let attempt = 0; attempt < tries; attempt++) {
@@ -52,108 +89,128 @@ async function search(query, tries = 4) {
   return [];
 }
 
-const stripFeat = (value) =>
-  String(value)
-    .replace(/\s*(&|ft\.|feat\.|x)\s.*$/i, "")
-    .trim();
-
-/** Насколько результат LRCLIB похож на нужную песню. */
-function score(item, artist, title) {
-  const wantArtist = norm(stripFeat(artist));
-  const wantTitle = norm(title);
-  const gotArtist = norm(item.artistName);
-  const gotTitle = norm(item.trackName);
-
-  let total = 0;
-  if (gotTitle === wantTitle) total += 60;
-  else if (gotTitle.includes(wantTitle) || wantTitle.includes(gotTitle))
-    total += 35;
-
-  if (gotArtist === wantArtist) total += 40;
-  else if (gotArtist.includes(wantArtist) || wantArtist.includes(gotArtist))
-    total += 22;
-
-  if (!item.plainLyrics) total -= 300;
-  if (item.instrumental) total -= 300;
-  return total;
-}
-
-const bestMatch = (items, song) =>
-  items.reduce(
-    (best, item) => {
-      const value = score(item, song.artist, song.title);
-      return value > best.value ? { value, item } : best;
-    },
-    { value: -Infinity, item: null },
-  ).item;
-
-const searchVariants = (song) => [
-  { artist_name: stripFeat(song.artist), track_name: song.title },
-  { q: `${stripFeat(song.artist)} ${song.title}` },
-  { q: song.title },
-];
-
 async function findLyrics(song) {
-  let best = null;
-  let bestScore = -1;
-
-  for (const query of searchVariants(song)) {
+  const artist = norm(song.artist);
+  const title = norm(song.title);
+  const queries = [
+    { artist_name: song.artist, track_name: song.title },
+    { q: song.title },
+  ];
+  let unmarked;
+  for (const query of queries) {
     const items = await search(query);
     for (const item of items) {
-      const value = score(item, song.artist, song.title);
-      if (value > bestScore) {
-        bestScore = value;
-        best = item;
-      }
-    }
-    if (bestScore >= 90) break;
-    await sleep(300);
-  }
+      if (
+        !item.plainLyrics ||
+        item.instrumental ||
+        norm(item.artistName ?? "") !== artist ||
+        norm(item.trackName ?? "") !== title
+      )
+        continue;
 
-  if (!best || bestScore < 60 || !best.plainLyrics) return null;
-  return normalizeLyrics(buildLyrics(best.plainLyrics) || {});
+      const cues = buildLyrics(item.plainLyrics);
+      if (cues) return { item, cues };
+      unmarked ??= { item, cues: null };
+    }
+  }
+  return unmarked;
 }
 
 async function main() {
   const songs = readJson(songsFile);
+  if (onlyIndex !== -1 && (!only?.[0] || only[0].startsWith("--"))) {
+    throw new Error("После --only укажите ID песен.");
+  }
+  const selected = only
+    ? songs.filter((song) => only.includes(song.id))
+    : songs;
+  if (reportSaved && (!review || only?.length !== 1 || selected.length !== 1)) {
+    throw new Error(
+      "Для --report-saved нужны --review и одна песня через --only.",
+    );
+  }
+  if (videoIndex !== -1) {
+    if (!reviewVideo || reviewVideo.startsWith("--")) {
+      throw new Error("После --video укажите ID видео.");
+    }
+    if (only?.length !== 1 || selected.length !== 1) {
+      throw new Error("Для --video укажите одну песню через --only.");
+    }
+    const [song] = selected;
+    if (reviewVideo !== song.id && !song.alt?.includes(reviewVideo)) {
+      throw new Error(`Видео ${reviewVideo} не принадлежит песне ${song.id}.`);
+    }
+  }
   const lyrics = readJson(lyricsFile);
-
-  const pending = songs.filter((song) => {
-    if (only) return only.includes(song.id);
-    if (force) return true;
-    return !lyrics[song.id]?.verse;
+  const pending = selected.filter((song) => {
+    const cues = lyrics[song.id];
+    return force || (!cues?.verse?.length && !cues?.chorus?.length);
   });
 
   if (!pending.length) {
-    console.log("Все песни уже с текстами — нечего загружать.");
+    console.log("Нет песен для поиска подсказок.");
     return;
   }
 
-  console.log(`Ищу тексты для ${pending.length} песен…`);
+  const ui = review
+    ? createInterface({ input: process.stdin, output: process.stdout })
+    : null;
+  const answers = ui?.[Symbol.asyncIterator]();
+  let saved = 0;
+  try {
+    for (const song of pending) {
+      console.log(`${song.artist} — ${song.title} (${song.id})`);
+      const draft = await findLyrics(song);
+      if (!draft) {
+        console.log(
+          "Точное совпадение не найдено. Подсказку нужно заполнить вручную.",
+        );
+        continue;
+      }
+      console.log(`LRCLIB: ${draft.item.artistName} — ${draft.item.trackName}`);
+      const video = reviewVideo ?? song.id;
+      console.log(`Караоке: https://www.youtube.com/watch?v=${video}`);
+      if (!draft.cues) {
+        console.log(
+          "Куплет и припев не размечены полностью. Внесите оба раздела вручную после сверки.",
+        );
+        continue;
+      }
+      console.log(JSON.stringify(draft.cues, null, 2));
+      if (!answers) continue;
 
-  let found = 0;
-  for (const [index, song] of pending.entries()) {
-    const text = await findLyrics(song);
-    if (text?.verse) {
-      lyrics[song.id] = text;
-      found++;
-      console.log(`ok   ${song.artist} — ${song.title}`);
-    } else {
-      console.log(`--   ${song.artist} — ${song.title} (не найдено)`);
-    }
-
-    // сохраняем на ходу: длинная загрузка не должна терять результат
-    if ((index + 1) % 5 === 0) {
-      fs.writeFileSync(
-        lyricsFile,
-        JSON.stringify(lyrics, null, 2) + "\n",
-        "utf8",
+      console.log(
+        "Сверьте с караоке исполнителя и все строки первого куплета и припева.",
       );
+      process.stdout.write(
+        "Первый куплет и припев совпадают целиком? Введите «да» для сохранения: ",
+      );
+      const answer = await answers.next();
+      if (answer.done) break;
+      if (answer.value.trim().toLowerCase() !== "да") {
+        console.log("Пропущено. Исправленный вариант можно внести вручную.");
+        continue;
+      }
+
+      if (!(await saveCues(song.id, lyrics[song.id], draft.cues))) {
+        console.log(
+          "Подсказка изменилась во время проверки. Повторите просмотр.",
+        );
+        continue;
+      }
+      saved++;
+      // Импортёр читает подтверждение отдельно от интерактивного вывода.
+      if (reportSaved) fs.writeFileSync(3, JSON.stringify(draft.cues), "utf8");
     }
+  } finally {
+    ui?.close();
   }
 
-  fs.writeFileSync(lyricsFile, JSON.stringify(lyrics, null, 2) + "\n", "utf8");
-  console.log(`\nНайдено ${found} из ${pending.length}. Дальше: npm run build`);
+  console.log(
+    review
+      ? `Сохранено после проверки: ${saved} из ${pending.length}.`
+      : "Предпросмотр завершён. Для сохранения запустите с --review.",
+  );
 }
 
 main().catch((error) => {

@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import { runInNewContext } from "node:vm";
 import { SONGS, queryMatcher } from "../src/catalog/catalog.js";
 import { isEmbedBlocked, mergeEmbedResults } from "../scripts/lib/embeds.js";
-import { cleanLines } from "../scripts/lib/lyrics.js";
+import { buildLyrics } from "../scripts/lib/lyrics.js";
 import { norm, searchNorm, escapeHtml } from "../src/core/text.js";
 import {
   versionsOf,
@@ -111,6 +111,25 @@ test("generated catalog preserves all source songs and metadata", async () => {
   );
 });
 
+test("generated catalog preserves every stored lyric line in order", async () => {
+  const lyrics = JSON.parse(
+    await fs.readFile(
+      new URL("../content/lyrics.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  for (const song of SONGS) {
+    for (const section of ["verse", "chorus"]) {
+      const lines = lyrics[song.id]?.[section];
+      assert.deepEqual(
+        song[section],
+        lines?.length ? lines : null,
+        `${song.id} ${section}`,
+      );
+    }
+  }
+});
+
 test("normalization: mixed alphabets, case, ё and punctuation have literal expected results", () => {
   assert.equal(norm("  Ёж — РОК!  "), "еж рок");
   assert.equal(searchNorm("МакSим"), "максим");
@@ -136,14 +155,56 @@ for (const [query, expected] of [
     assert.equal(queryMatcher(query)(searchSong), expected));
 }
 
-test("lyrics cleanup removes markup and duplicates without losing words", () => {
+test("lyrics require the first sections and keep lines after annotations", () => {
+  assert.equal(buildLyrics("[Verse 10]\nLater verse\n[Chorus]\nHook"), null);
   assert.deepEqual(
-    cleanLines(
-      "[Verse 1]\n[00:02.30]Ёлка &amp; дом\nЁлка &amp; дом\n&#x2028;Кабан — чуток желудей\n(х2)",
+    buildLyrics(
+      "[Verse 2a]\nLater verse\n[Verse 1: Artist]\nLine &amp; line\n[spoken]\nLine &amp; line\nHook:\nOther section\n[Chorus]\nFirst line\nSecond line",
     ),
-    ["Ёлка & дом", "Кабан — чуток желудей"],
+    {
+      verse: ["Line & line", "Line & line"],
+      chorus: ["First line", "Second line"],
+    },
   );
-  assert.equal(cleanLines("[Chorus]\n...\n"), null);
+});
+
+test("lyrics require manual review for unknown boundaries and repeat markers", () => {
+  assert.equal(
+    buildLyrics(
+      "Verse 1:\nVerse line\nRefrain:\nRefrain line\nChorus:\nChorus line",
+    ),
+    null,
+  );
+  assert.equal(
+    buildLyrics(
+      "Verse 1:\nVerse line\nRefrain: Soloist\nRefrain line\nChorus:\nChorus line",
+    ),
+    null,
+  );
+  assert.equal(
+    buildLyrics(
+      "[Verse 1]\nVerse line\n[Refrain]\nRefrain line\n[Chorus]\nChorus line",
+    ),
+    null,
+  );
+  assert.equal(
+    buildLyrics("[Verse 1]\nVerse line\n[Chorus]\nChorus line\n(x2)"),
+    null,
+  );
+  assert.equal(
+    buildLyrics("[Verse 1]\nVerse line\n[Chorus]\nChorus line (x2)"),
+    null,
+  );
+  assert.equal(buildLyrics("[Verse 1]\nVerse line\n[Chorus]\n..."), null);
+});
+
+test("lyrics stop collecting at an attributed bridge heading", () => {
+  assert.deepEqual(
+    buildLyrics(
+      "[Verse 1]\nVerse line\nBridge: Soloist\nBridge line\n[Chorus]\nChorus line",
+    ),
+    { verse: ["Verse line"], chorus: ["Chorus line"] },
+  );
 });
 
 test("three video versions and mixed availability retain their IDs", () => {

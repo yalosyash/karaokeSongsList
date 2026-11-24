@@ -802,7 +802,7 @@ async function steps(page) {
       (r) => r.querySelector(".row-artist").textContent,
     );
     const sorted = [...artists].sort((a, b) =>
-      a.localeCompare(b, "ru", { sensitivity: "base" }),
+      a.localeCompare(b, "ru", { sensitivity: "base", numeric: true }),
     );
     return JSON.stringify(artists) === JSON.stringify(sorted);
   });

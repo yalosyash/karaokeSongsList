@@ -28,7 +28,16 @@ test("Import, reject duplicates and resume after a failed video check", async ()
     );
     await put(
       "preload.mjs",
-      'globalThis.fetch = async () => ({ ok: true, json: async () => ({ title: "Test Artist - New Song (Karaoke)" }) });',
+      `globalThis.fetch = async (url) => ({
+        ok: true,
+        json: async () => new URL(url).hostname === "lrclib.net"
+          ? [{
+              artistName: "Test Artist",
+              trackName: "New Song",
+              plainLyrics: "[Verse 1]\\nTest verse\\n[Chorus]\\nTest chorus",
+            }]
+          : { title: "Test Artist - New Song (Karaoke)" },
+      });`,
     );
     await put(
       "content/songs.json",
@@ -48,13 +57,25 @@ test("Import, reject duplicates and resume after a failed video check", async ()
       embeds: [],
     }))
       await put(`content/${name}.json`, JSON.stringify(data));
-    await put(
+    for (const file of [
+      "scripts/build-catalog.js",
       "scripts/fetch-lyrics.js",
-      `import fs from 'node:fs';const id=process.argv.at(-1);fs.writeFileSync('content/lyrics.json',JSON.stringify({[id]:{verse:['Test line'],chorus:[]}}));`,
+      "scripts/lib/embeds.js",
+      "scripts/lib/lyrics.js",
+      "src/core/text.js",
+    ]) {
+      await put(
+        file,
+        await fs.readFile(new URL(`../../../${file}`, import.meta.url)),
+      );
+    }
+    await put(
+      "node_modules/prettier/package.json",
+      '{"type":"module","exports":"./index.js"}',
     );
     await put(
-      "scripts/build-catalog.js",
-      `import fs from 'node:fs';fs.mkdirSync('data',{recursive:true});fs.writeFileSync('data/catalog.js',fs.readFileSync('content/songs.json'));`,
+      "node_modules/prettier/index.js",
+      "export default { format: (source) => source };",
     );
     await put(
       "scripts/dev-server.js",
@@ -64,19 +85,21 @@ test("Import, reject duplicates and resume after a failed video check", async ()
       "scripts/check-embeds.js",
       `import fs from 'node:fs';if(process.env.IMPORT_FAIL) process.exit(1);fs.writeFileSync('content/embeds.json',JSON.stringify([{id:process.argv.at(-1),status:'ok',error:null}]));`,
     );
-    const execute = (args, fail = false) =>
+    const preload = pathToFileURL(path.join(root, "preload.mjs")).href;
+    const execute = (args, fail = false, approveCues = false, beforeAnswer) =>
       new Promise((resolve, reject) => {
         const child = spawn(
           process.execPath,
-          [
-            "--import",
-            pathToFileURL(path.join(root, "preload.mjs")).href,
-            path.join(root, "tools/song-import/add-song.js"),
-            ...args,
-          ],
+          [path.join(root, "tools/song-import/add-song.js"), ...args],
           {
             cwd: os.tmpdir(),
-            env: { ...process.env, IMPORT_FAIL: fail ? "1" : "" },
+            env: {
+              ...process.env,
+              IMPORT_FAIL: fail ? "1" : "",
+              NODE_OPTIONS: [process.env.NODE_OPTIONS, `--import=${preload}`]
+                .filter(Boolean)
+                .join(" "),
+            },
             stdio: ["pipe", "pipe", "pipe"],
           },
         );
@@ -86,12 +109,25 @@ test("Import, reject duplicates and resume after a failed video check", async ()
           child.kill();
           reject(new Error(`Import timed out: ${output}`));
         }, 15000);
-        child.stdout.on("data", (chunk) => {
+        child.stdout.on("data", async (chunk) => {
           output += chunk;
           pending += chunk;
           if (pending.endsWith(": ")) {
+            const cuePrompt = /Сверили с караоке|для сохранения: /.test(
+              pending,
+            );
+            const answer = approveCues && cuePrompt ? "да" : "";
             pending = "";
-            child.stdin.write("\n");
+            if (cuePrompt && beforeAnswer) {
+              try {
+                await beforeAnswer();
+              } catch (error) {
+                child.kill();
+                reject(error);
+                return;
+              }
+            }
+            child.stdin.write(answer + "\n");
           }
         });
         child.stderr.on("data", (chunk) => {
@@ -101,13 +137,51 @@ test("Import, reject duplicates and resume after a failed video check", async ()
           clearTimeout(timer);
           reject(error);
         });
-        child.once("exit", (code) => {
+        child.once("close", (code) => {
           clearTimeout(timer);
           resolve({ code, output });
         });
       });
     const link = "https://youtu.be/newSong0001";
-    const failed = await execute([link], true);
+    const catalogPath = path.join(root, "data/catalog.js");
+    const competingCues = {
+      verse: ["Changed verse"],
+      chorus: ["Changed chorus"],
+    };
+    const replaceLyrics = () =>
+      put(
+        "content/lyrics.json",
+        JSON.stringify({ newSong0001: competingCues }),
+      );
+    for (const approve of [false, true]) {
+      await put("content/lyrics.json", "{}");
+      const result = await execute(
+        approve ? ["--resume", link] : [link],
+        false,
+        approve,
+        replaceLyrics,
+      );
+      assert.equal(result.code, 1, result.output);
+      assert.match(
+        result.output,
+        approve ? /Подсказка изменилась во время проверки/ : /Пропущено/,
+      );
+      assert.match(result.output, /Подсказка не сохранена/);
+      assert.deepEqual(
+        (await read("content/lyrics.json")).newSong0001,
+        competingCues,
+      );
+      await assert.rejects(fs.access(catalogPath), { code: "ENOENT" });
+    }
+    const chorusOnly = { newSong0001: { chorus: ["Saved chorus"] } };
+    await put("content/lyrics.json", JSON.stringify(chorusOnly));
+    const partial = await execute(["--resume", link], false, true);
+    assert.equal(partial.code, 1, partial.output);
+    assert.match(partial.output, /Добавьте полный куплет/);
+    assert.deepEqual(await read("content/lyrics.json"), chorusOnly);
+
+    await put("content/lyrics.json", "{}");
+    const failed = await execute(["--resume", link], true, true);
     assert.equal(failed.code, 1, failed.output);
     assert.ok(
       failed.output.includes(
@@ -116,12 +190,26 @@ test("Import, reject duplicates and resume after a failed video check", async ()
       failed.output,
     );
     assert.equal((await read("content/songs.json")).length, 2);
-    const resumed = await execute(["--resume", link]);
+    const declined = await execute(["--resume", link]);
+    assert.equal(declined.code, 1, declined.output);
+    assert.match(declined.output, /Проверьте подсказки/);
+    const before = await fs.readFile(catalogPath, "utf8");
+    assert.match(before, /Test verse/);
+    const changed = await execute(
+      ["--resume", link],
+      false,
+      true,
+      replaceLyrics,
+    );
+    assert.equal(changed.code, 1, changed.output);
+    assert.match(changed.output, /Подсказка изменилась после сверки/);
+    assert.equal(await fs.readFile(catalogPath, "utf8"), before);
+    const resumed = await execute(["--resume", link], false, true);
     assert.equal(resumed.code, 0, resumed.output);
     assert.match(resumed.output, /Добавлено в локальный каталог/);
     assert.equal((await read("content/songs.json")).length, 2);
     assert.equal((await read("content/embeds.json"))[0].status, "ok");
-    assert.equal((await read("data/catalog.js")).length, 2);
+    assert.match(await fs.readFile(catalogPath, "utf8"), /Changed verse/);
     const duplicate = await execute([link]);
     assert.equal(duplicate.code, 1);
     assert.match(duplicate.output, /уже есть/);

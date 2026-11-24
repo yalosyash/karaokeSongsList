@@ -17,17 +17,23 @@ const write = (name, data) =>
     `content/${name}.json`,
     JSON.stringify(data, null, 2) + "\n",
   );
-function run(script, args = [], env = {}) {
+function run(
+  script,
+  args = [],
+  { env = {}, timeout = 180000, stdio = "inherit" } = {},
+) {
   const result = spawnSync(process.execPath, [script, ...args], {
-    stdio: "inherit",
+    stdio,
+    encoding: "utf8",
     env: { ...process.env, ...env },
-    timeout: 180000,
+    timeout,
   });
   if (result.error?.code === "ETIMEDOUT")
     throw new Error(
       `Превышено время ожидания: ${script}. Проверьте доступ к сети и повторите запуск.`,
     );
   if (result.status !== 0) throw new Error(`Не выполнено: ${script}`);
+  return result;
 }
 async function ask(label, fallback = "") {
   const answer =
@@ -134,21 +140,48 @@ try {
     changed = true;
     console.log(`Продолжаю проверку: ${song.artist} — ${song.title}`);
   }
-  if (!read("lyrics")[song.id]?.verse?.length)
-    run("scripts/fetch-lyrics.js", ["--only", song.id]);
-  if (!read("lyrics")[song.id]?.verse?.length)
-    throw new Error(
-      "Текст не найден. Заполните подсказки в content/lyrics.json и повторите запуск с --resume.",
+  const existingCues = read("lyrics")[song.id];
+  let approvedCues = existingCues;
+  if (existingCues?.verse?.length || existingCues?.chorus?.length) {
+    if (!existingCues.verse?.length)
+      throw new Error(
+        "Добавьте полный куплет в content/lyrics.json и повторите запуск с --resume.",
+      );
+    if (!existingCues.chorus?.length)
+      throw new Error(
+        "Добавьте полный припев в content/lyrics.json и повторите запуск с --resume.",
+      );
+    console.log("Караоке:", retryLink);
+    console.log("Подсказка:", JSON.stringify(existingCues, null, 2));
+    if (
+      (await ask(
+        "Сверили с караоке исполнителя и все строки первого куплета и припева? Введите да",
+        "нет",
+      )) !== "да"
+    )
+      throw new Error(
+        "Проверьте подсказки в content/lyrics.json и повторите запуск с --resume.",
+      );
+  } else {
+    ui.close();
+    const { output } = run(
+      "scripts/fetch-lyrics.js",
+      ["--review", "--video", id, "--report-saved", "--only", song.id],
+      { timeout: 0, stdio: ["inherit", "inherit", "inherit", "pipe"] },
     );
-  console.log(
-    "Проверьте подсказку:",
-    JSON.stringify(read("lyrics")[song.id], null, 2),
-  );
-  if ((await ask("Текст соответствует песне? да/нет", "да")) !== "да")
-    throw new Error(
-      "Исправьте content/lyrics.json и повторите запуск с --resume.",
-    );
-  run("scripts/build-catalog.js");
+    if (!output[3])
+      throw new Error(
+        "Подсказка не сохранена. Заполните content/lyrics.json вручную и повторите запуск с --resume.",
+      );
+    approvedCues = JSON.parse(output[3]);
+  }
+  const buildEnv = {
+    SONG_IMPORT_APPROVED_CUES: JSON.stringify({
+      id: song.id,
+      cues: approvedCues,
+    }),
+  };
+  run("scripts/build-catalog.js", [], { env: buildEnv });
   server = spawn(process.execPath, ["scripts/dev-server.js"], {
     env: { ...process.env, PORT: "0" },
     stdio: ["ignore", "pipe", "inherit"],
@@ -179,8 +212,7 @@ try {
     : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
   console.log("Проверяю воспроизведение YouTube…");
   run("scripts/check-embeds.js", ["--only", id], {
-    CHECK_BASE_URL: base,
-    CHROME_PATH: chrome,
+    env: { CHECK_BASE_URL: base, CHROME_PATH: chrome },
   });
   const result = read("embeds").find((s) => s.id === id);
   if (result?.status !== "ok" && ![101, 150].includes(result?.error))
@@ -191,7 +223,7 @@ try {
     console.log(
       "Автор запретил встраивание: песня будет открываться на YouTube.",
     );
-  run("scripts/build-catalog.js");
+  run("scripts/build-catalog.js", [], { env: buildEnv });
   console.log("Добавлено в локальный каталог. Обновите страницу сайта.");
 } catch (error) {
   console.error(error.message);
